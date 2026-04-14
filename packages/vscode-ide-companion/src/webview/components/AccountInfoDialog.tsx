@@ -22,7 +22,7 @@ interface AccountInfoDialogProps {
 
 const AUTH_LABELS: Record<string, string> = {
   'qwen-oauth': 'Qwen OAuth',
-  openai: 'OpenAI-compatible',
+  openai: 'OpenRouter (Bearer Token)',
   gemini: 'Gemini',
   anthropic: 'Anthropic',
   'vertex-ai': 'Vertex AI',

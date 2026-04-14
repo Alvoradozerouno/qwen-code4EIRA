@@ -104,8 +104,8 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
 
       expect(headers).toEqual({
         'User-Agent': `QwenCode/1.0.0 (${process.platform}; ${process.arch})`,
-        'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git',
-        'X-OpenRouter-Title': 'Qwen Code',
+        'HTTP-Referer': 'https://genesis-copilot.com',
+        'X-Title': 'Genesis Copilot Orion Kernel',
       });
     });
 
@@ -124,8 +124,8 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
 
       expect(headers).toEqual({
         'User-Agent': 'ParentAgent/1.0.0',
-        'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git', // OpenRouter-specific value should override
-        'X-OpenRouter-Title': 'Qwen Code',
+        'HTTP-Referer': 'https://genesis-copilot.com', // OpenRouter-specific value should override
+        'X-Title': 'Genesis Copilot Orion Kernel',
       });
 
       parentBuildHeaders.mockRestore();
@@ -139,10 +139,8 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers['User-Agent']).toBe(
         `QwenCode/unknown (${process.platform}; ${process.arch})`,
       );
-      expect(headers['HTTP-Referer']).toBe(
-        'https://github.com/QwenLM/qwen-code.git',
-      );
-      expect(headers['X-OpenRouter-Title']).toBe('Qwen Code');
+      expect(headers['HTTP-Referer']).toBe('https://genesis-copilot.com');
+      expect(headers['X-Title']).toBe('Genesis Copilot Orion Kernel');
     });
   });
 
@@ -212,10 +210,8 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
 
       // Should have both parent and OpenRouter-specific headers
       expect(headers['User-Agent']).toBeDefined(); // From parent
-      expect(headers['HTTP-Referer']).toBe(
-        'https://github.com/QwenLM/qwen-code.git',
-      ); // OpenRouter-specific
-      expect(headers['X-OpenRouter-Title']).toBe('Qwen Code'); // OpenRouter-specific
+      expect(headers['HTTP-Referer']).toBe('https://genesis-copilot.com'); // OpenRouter-specific
+      expect(headers['X-Title']).toBe('Genesis Copilot Orion Kernel'); // OpenRouter-specific
     });
   });
 });

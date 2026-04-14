@@ -23,6 +23,9 @@ import { getErrorMessage } from '../utils/errorMessage.js';
 import type { ModelInfo } from '@agentclientprotocol/sdk';
 import type { ApprovalModeValue } from '../types/approvalModeValueTypes.js';
 
+export const QWEN_API_BASE_URL = 'https://openrouter.ai';
+export const DEFAULT_MODEL = 'qwen/qwen-3.6-plus';
+
 export interface QwenConnectionResult {
   sessionCreated: boolean;
   requiresAuth: boolean;
@@ -75,8 +78,17 @@ export class QwenConnectionHandler {
     // Build extra CLI arguments (only essential parameters)
     const extraArgs: string[] = [];
     const httpConfig = vscode.workspace.getConfiguration('http');
+    const qwenConfig = vscode.workspace.getConfiguration('qwen-code');
     const proxyUrl =
       httpConfig.get<string>('proxy') || httpConfig.get<string>('https.proxy');
+    const openRouterApiKey = qwenConfig.get<string>('openRouterApiKey')?.trim();
+
+    process.env['OPENAI_BASE_URL'] = QWEN_API_BASE_URL;
+    process.env['OPENAI_MODEL'] = DEFAULT_MODEL;
+    if (openRouterApiKey) {
+      process.env['OPENAI_API_KEY'] = openRouterApiKey;
+    }
+
     if (proxyUrl) {
       extraArgs.push('--proxy', proxyUrl);
       console.log(
