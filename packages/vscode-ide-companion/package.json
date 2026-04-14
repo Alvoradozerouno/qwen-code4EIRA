@@ -37,6 +37,17 @@
     "onCommand:qwen-code.showLogs"
   ],
   "contributes": {
+    "configuration": {
+      "title": "Qwen Code",
+      "properties": {
+        "qwen-code.openRouterApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API key used by Qwen Code Companion.",
+          "scope": "application"
+        }
+      }
+    },
     "jsonValidation": [
       {
         "fileMatch": "**/.qwen/settings.json",

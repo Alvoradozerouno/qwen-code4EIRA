@@ -23,6 +23,9 @@ import { getErrorMessage } from '../utils/errorMessage.js';
 import type { ModelInfo } from '@agentclientprotocol/sdk';
 import type { ApprovalModeValue } from '../types/approvalModeValueTypes.js';
 
+export const QWEN_API_BASE_URL = 'https://openrouter.ai';
+export const DEFAULT_MODEL = 'qwen/qwen-3.6-plus';
+
 export interface QwenConnectionResult {
   sessionCreated: boolean;
   requiresAuth: boolean;
@@ -75,8 +78,18 @@ export class QwenConnectionHandler {
     // Build extra CLI arguments (only essential parameters)
     const extraArgs: string[] = [];
     const httpConfig = vscode.workspace.getConfiguration('http');
+    const qwenConfig = vscode.workspace.getConfiguration('qwen-code');
     const proxyUrl =
       httpConfig.get<string>('proxy') || httpConfig.get<string>('https.proxy');
+    const apiKey = qwenConfig.get<string>('openRouterApiKey')?.trim();
+    const extraEnv: Record<string, string> = {
+      OPENAI_BASE_URL: QWEN_API_BASE_URL,
+      OPENAI_MODEL: DEFAULT_MODEL,
+    };
+    if (apiKey) {
+      extraEnv['OPENAI_API_KEY'] = apiKey;
+    }
+
     if (proxyUrl) {
       extraArgs.push('--proxy', proxyUrl);
       console.log(
@@ -93,7 +106,12 @@ export class QwenConnectionHandler {
         console.log(
           `[QwenAgentManager] Connecting to ACP process (attempt ${attempt}/${maxConnectAttempts})...`,
         );
-        await connection.connect(cliEntryPath!, workingDir, extraArgs);
+        await connection.connect(
+          cliEntryPath!,
+          workingDir,
+          extraArgs,
+          extraEnv,
+        );
         console.log('[QwenAgentManager] ACP process connected successfully');
         break;
       } catch (connectError) {

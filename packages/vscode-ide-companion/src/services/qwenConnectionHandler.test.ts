@@ -12,7 +12,11 @@ vi.mock('vscode', () => ({
   },
 }));
 
-import { QwenConnectionHandler } from './qwenConnectionHandler.js';
+import {
+  DEFAULT_MODEL,
+  QWEN_API_BASE_URL,
+  QwenConnectionHandler,
+} from './qwenConnectionHandler.js';
 import type { AcpConnection } from './acpConnection.js';
 
 describe('QwenConnectionHandler', () => {
@@ -131,6 +135,48 @@ describe('QwenConnectionHandler', () => {
       const connectArgs = (mockConnection.connect as ReturnType<typeof vi.fn>)
         .mock.calls[0];
       expect(connectArgs[2]).not.toContain('--proxy');
+    });
+  });
+
+  describe('OpenRouter environment configuration', () => {
+    it('passes OpenRouter base URL and default model as child process env', async () => {
+      mockGetConfiguration.mockImplementation((section: string) => {
+        if (section === 'qwen-code') {
+          return { get: () => undefined };
+        }
+        return { get: () => undefined };
+      });
+
+      await handler.connect(mockConnection, '/workspace', '/path/to/cli.js');
+
+      const connectArgs = (mockConnection.connect as ReturnType<typeof vi.fn>)
+        .mock.calls[0];
+      expect(connectArgs[3]).toEqual({
+        OPENAI_BASE_URL: QWEN_API_BASE_URL,
+        OPENAI_MODEL: DEFAULT_MODEL,
+      });
+    });
+
+    it('passes OPENAI_API_KEY from extension setting when provided', async () => {
+      mockGetConfiguration.mockImplementation((section: string) => {
+        if (section === 'qwen-code') {
+          return {
+            get: (key: string) =>
+              key === 'openRouterApiKey' ? 'test-openrouter-key' : undefined,
+          };
+        }
+        return { get: () => undefined };
+      });
+
+      await handler.connect(mockConnection, '/workspace', '/path/to/cli.js');
+
+      const connectArgs = (mockConnection.connect as ReturnType<typeof vi.fn>)
+        .mock.calls[0];
+      expect(connectArgs[3]).toEqual({
+        OPENAI_BASE_URL: QWEN_API_BASE_URL,
+        OPENAI_MODEL: DEFAULT_MODEL,
+        OPENAI_API_KEY: 'test-openrouter-key',
+      });
     });
   });
 

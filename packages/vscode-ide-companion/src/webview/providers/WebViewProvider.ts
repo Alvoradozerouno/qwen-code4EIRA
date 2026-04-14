@@ -26,6 +26,9 @@ import { type ApprovalModeValue } from '../../types/approvalModeValueTypes.js';
 import { isAuthenticationRequiredError } from '../../utils/authErrors.js';
 import { getErrorMessage } from '../../utils/errorMessage.js';
 
+const OPEN_ROUTER_API_KEY_PREFIX = 'sk-or-v1-';
+const OPEN_ROUTER_API_KEY_MIN_LENGTH = 40;
+
 export class WebViewProvider {
   private panelManager: PanelManager;
   private messageHandler: MessageHandler;
@@ -819,6 +822,7 @@ export class WebViewProvider {
    */
   async initializeAgentConnection(options?: {
     autoAuthenticate?: boolean;
+    skipApiKeyPrompt?: boolean;
   }): Promise<void> {
     return this.doInitializeAgentConnection(options);
   }
@@ -828,8 +832,10 @@ export class WebViewProvider {
    */
   private async doInitializeAgentConnection(options?: {
     autoAuthenticate?: boolean;
+    skipApiKeyPrompt?: boolean;
   }): Promise<void> {
     const autoAuthenticate = options?.autoAuthenticate ?? true;
+    const skipApiKeyPrompt = options?.skipApiKeyPrompt ?? false;
     const run = async () => {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       const workingDir = workspaceFolder?.uri.fsPath || process.cwd();
@@ -864,6 +870,16 @@ export class WebViewProvider {
         // If authentication is required and autoAuthenticate is false,
         // send authState message and return without creating session
         if (connectResult.requiresAuth && !autoAuthenticate) {
+          if (!skipApiKeyPrompt) {
+            const apiKeyUpdated = await this.promptForOpenRouterApiKey();
+            if (apiKeyUpdated) {
+              await this.doInitializeAgentConnection({
+                autoAuthenticate: false,
+                skipApiKeyPrompt: true,
+              });
+              return;
+            }
+          }
           console.log(
             '[WebViewProvider] Authentication required but auto-auth disabled, sending authState and returning',
           );
@@ -984,6 +1000,63 @@ export class WebViewProvider {
         }
       },
     );
+  }
+
+  private async promptForOpenRouterApiKey(): Promise<boolean> {
+    const config = vscode.workspace.getConfiguration('qwen-code');
+    const currentApiKey = config.get<string>('openRouterApiKey')?.trim();
+    if (currentApiKey) {
+      return false;
+    }
+
+    const action = await vscode.window.showInformationMessage(
+      'OpenRouter API key required. Configure it in extension settings to continue.',
+      'Enter API Key',
+      'Open Settings',
+    );
+
+    if (action === 'Open Settings') {
+      await vscode.commands.executeCommand(
+        'workbench.action.openSettings',
+        'qwen-code.openRouterApiKey',
+      );
+      return false;
+    }
+
+    if (action !== 'Enter API Key') {
+      return false;
+    }
+
+    const apiKey = await vscode.window.showInputBox({
+      prompt: 'Enter your OpenRouter API key',
+      placeHolder: `${OPEN_ROUTER_API_KEY_PREFIX}...`,
+      password: true,
+      ignoreFocusOut: true,
+    });
+
+    const trimmedApiKey = apiKey?.trim();
+    if (!trimmedApiKey) {
+      return false;
+    }
+    if (!trimmedApiKey.startsWith(OPEN_ROUTER_API_KEY_PREFIX)) {
+      await vscode.window.showWarningMessage(
+        `Invalid OpenRouter API key format. Please enter a valid key starting with ${OPEN_ROUTER_API_KEY_PREFIX}.`,
+      );
+      return false;
+    }
+    if (trimmedApiKey.length < OPEN_ROUTER_API_KEY_MIN_LENGTH) {
+      await vscode.window.showWarningMessage(
+        `Invalid OpenRouter API key format. API key must be at least ${OPEN_ROUTER_API_KEY_MIN_LENGTH} characters long.`,
+      );
+      return false;
+    }
+
+    await config.update(
+      'openRouterApiKey',
+      trimmedApiKey,
+      vscode.ConfigurationTarget.Global,
+    );
+    return true;
   }
 
   /**
