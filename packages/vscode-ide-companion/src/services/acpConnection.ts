@@ -79,6 +79,7 @@ export class AcpConnection {
     cliEntryPath: string,
     workingDir: string = process.cwd(),
     extraArgs: string[] = [],
+    extraEnv: Record<string, string> = {},
   ): Promise<void> {
     if (this.child) {
       this.disconnect();
@@ -88,7 +89,7 @@ export class AcpConnection {
     this.lastExitSignal = null;
     this.workingDir = workingDir;
 
-    const env = { ...process.env };
+    const env = { ...process.env, ...extraEnv };
 
     const proxyArg = extraArgs.find(
       (arg, i) => arg === '--proxy' && i + 1 < extraArgs.length,

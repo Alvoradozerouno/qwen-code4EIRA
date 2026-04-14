@@ -2,6 +2,10 @@ import type { Config } from '../../../config/config.js';
 import type { ContentGeneratorConfig } from '../../contentGenerator.js';
 import { DefaultOpenAICompatibleProvider } from './default.js';
 
+// Intentionally set to deployment-specific identity values requested by integrator.
+const OPEN_ROUTER_REFERER = 'https://genesis-copilot.com';
+const OPEN_ROUTER_TITLE = 'Genesis Copilot Orion Kernel';
+
 export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleProvider {
   constructor(
     contentGeneratorConfig: ContentGeneratorConfig,
@@ -24,8 +28,9 @@ export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleP
     // Add OpenRouter-specific headers
     return {
       ...baseHeaders,
-      'HTTP-Referer': 'https://genesis-copilot.com',
-      'X-Title': 'Genesis Copilot Orion Kernel',
+      'HTTP-Referer': OPEN_ROUTER_REFERER,
+      'X-OpenRouter-Title': OPEN_ROUTER_TITLE,
+      'X-Title': OPEN_ROUTER_TITLE,
     };
   }
 }

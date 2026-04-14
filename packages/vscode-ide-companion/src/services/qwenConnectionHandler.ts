@@ -81,12 +81,13 @@ export class QwenConnectionHandler {
     const qwenConfig = vscode.workspace.getConfiguration('qwen-code');
     const proxyUrl =
       httpConfig.get<string>('proxy') || httpConfig.get<string>('https.proxy');
-    const openRouterApiKey = qwenConfig.get<string>('openRouterApiKey')?.trim();
-
-    process.env['OPENAI_BASE_URL'] = QWEN_API_BASE_URL;
-    process.env['OPENAI_MODEL'] = DEFAULT_MODEL;
-    if (openRouterApiKey) {
-      process.env['OPENAI_API_KEY'] = openRouterApiKey;
+    const apiKey = qwenConfig.get<string>('openRouterApiKey')?.trim();
+    const extraEnv: Record<string, string> = {
+      OPENAI_BASE_URL: QWEN_API_BASE_URL,
+      OPENAI_MODEL: DEFAULT_MODEL,
+    };
+    if (apiKey) {
+      extraEnv['OPENAI_API_KEY'] = apiKey;
     }
 
     if (proxyUrl) {
@@ -105,7 +106,12 @@ export class QwenConnectionHandler {
         console.log(
           `[QwenAgentManager] Connecting to ACP process (attempt ${attempt}/${maxConnectAttempts})...`,
         );
-        await connection.connect(cliEntryPath!, workingDir, extraArgs);
+        await connection.connect(
+          cliEntryPath!,
+          workingDir,
+          extraArgs,
+          extraEnv,
+        );
         console.log('[QwenAgentManager] ACP process connected successfully');
         break;
       } catch (connectError) {

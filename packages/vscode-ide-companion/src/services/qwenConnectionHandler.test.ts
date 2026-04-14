@@ -139,14 +139,7 @@ describe('QwenConnectionHandler', () => {
   });
 
   describe('OpenRouter environment configuration', () => {
-    it('sets OpenRouter base URL and default model environment variables', async () => {
-      const oldBaseUrl = process.env['OPENAI_BASE_URL'];
-      const oldModel = process.env['OPENAI_MODEL'];
-      const oldApiKey = process.env['OPENAI_API_KEY'];
-      delete process.env['OPENAI_BASE_URL'];
-      delete process.env['OPENAI_MODEL'];
-      delete process.env['OPENAI_API_KEY'];
-
+    it('passes OpenRouter base URL and default model as child process env', async () => {
       mockGetConfiguration.mockImplementation((section: string) => {
         if (section === 'qwen-code') {
           return { get: () => undefined };
@@ -156,31 +149,15 @@ describe('QwenConnectionHandler', () => {
 
       await handler.connect(mockConnection, '/workspace', '/path/to/cli.js');
 
-      expect(process.env['OPENAI_BASE_URL']).toBe(QWEN_API_BASE_URL);
-      expect(process.env['OPENAI_MODEL']).toBe(DEFAULT_MODEL);
-      expect(process.env['OPENAI_API_KEY']).toBeUndefined();
-
-      if (oldBaseUrl !== undefined) {
-        process.env['OPENAI_BASE_URL'] = oldBaseUrl;
-      } else {
-        delete process.env['OPENAI_BASE_URL'];
-      }
-      if (oldModel !== undefined) {
-        process.env['OPENAI_MODEL'] = oldModel;
-      } else {
-        delete process.env['OPENAI_MODEL'];
-      }
-      if (oldApiKey !== undefined) {
-        process.env['OPENAI_API_KEY'] = oldApiKey;
-      } else {
-        delete process.env['OPENAI_API_KEY'];
-      }
+      const connectArgs = (mockConnection.connect as ReturnType<typeof vi.fn>)
+        .mock.calls[0];
+      expect(connectArgs[3]).toEqual({
+        OPENAI_BASE_URL: QWEN_API_BASE_URL,
+        OPENAI_MODEL: DEFAULT_MODEL,
+      });
     });
 
-    it('sets OPENAI_API_KEY from extension setting when provided', async () => {
-      const oldApiKey = process.env['OPENAI_API_KEY'];
-      delete process.env['OPENAI_API_KEY'];
-
+    it('passes OPENAI_API_KEY from extension setting when provided', async () => {
       mockGetConfiguration.mockImplementation((section: string) => {
         if (section === 'qwen-code') {
           return {
@@ -193,13 +170,13 @@ describe('QwenConnectionHandler', () => {
 
       await handler.connect(mockConnection, '/workspace', '/path/to/cli.js');
 
-      expect(process.env['OPENAI_API_KEY']).toBe('test-openrouter-key');
-
-      if (oldApiKey !== undefined) {
-        process.env['OPENAI_API_KEY'] = oldApiKey;
-      } else {
-        delete process.env['OPENAI_API_KEY'];
-      }
+      const connectArgs = (mockConnection.connect as ReturnType<typeof vi.fn>)
+        .mock.calls[0];
+      expect(connectArgs[3]).toEqual({
+        OPENAI_BASE_URL: QWEN_API_BASE_URL,
+        OPENAI_MODEL: DEFAULT_MODEL,
+        OPENAI_API_KEY: 'test-openrouter-key',
+      });
     });
   });
 

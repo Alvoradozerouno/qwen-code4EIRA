@@ -105,6 +105,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers).toEqual({
         'User-Agent': `QwenCode/1.0.0 (${process.platform}; ${process.arch})`,
         'HTTP-Referer': 'https://genesis-copilot.com',
+        'X-OpenRouter-Title': 'Genesis Copilot Orion Kernel',
         'X-Title': 'Genesis Copilot Orion Kernel',
       });
     });
@@ -125,6 +126,7 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       expect(headers).toEqual({
         'User-Agent': 'ParentAgent/1.0.0',
         'HTTP-Referer': 'https://genesis-copilot.com', // OpenRouter-specific value should override
+        'X-OpenRouter-Title': 'Genesis Copilot Orion Kernel',
         'X-Title': 'Genesis Copilot Orion Kernel',
       });
 
@@ -140,6 +142,9 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
         `QwenCode/unknown (${process.platform}; ${process.arch})`,
       );
       expect(headers['HTTP-Referer']).toBe('https://genesis-copilot.com');
+      expect(headers['X-OpenRouter-Title']).toBe(
+        'Genesis Copilot Orion Kernel',
+      );
       expect(headers['X-Title']).toBe('Genesis Copilot Orion Kernel');
     });
   });
@@ -211,6 +216,9 @@ describe('OpenRouterOpenAICompatibleProvider', () => {
       // Should have both parent and OpenRouter-specific headers
       expect(headers['User-Agent']).toBeDefined(); // From parent
       expect(headers['HTTP-Referer']).toBe('https://genesis-copilot.com'); // OpenRouter-specific
+      expect(headers['X-OpenRouter-Title']).toBe(
+        'Genesis Copilot Orion Kernel',
+      ); // OpenRouter-specific
       expect(headers['X-Title']).toBe('Genesis Copilot Orion Kernel'); // OpenRouter-specific
     });
   });
