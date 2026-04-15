@@ -1,0 +1,102 @@
+name: 'Build & Release VSIX'
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or full commit SHA to build from'
+        required: true
+        type: 'string'
+        default: 'main'
+      dry_run:
+        description: 'Dry-run: build the VSIX but do NOT create a GitHub Release'
+        required: true
+        type: 'boolean'
+        default: true
+      version_override:
+        description: 'Optional version override (e.g. 0.14.5). Defaults to version in package.json.'
+        required: false
+        type: 'string'
+
+concurrency:
+  group: 'build-vsix-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    name: 'Build VSIX & Release'
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'write'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+        with:
+          ref: '${{ github.event.inputs.ref || github.sha }}'
+          fetch-depth: 0
+
+      - name: 'Set up Node.js'
+        uses: 'actions/setup-node@v4'
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: 'Install dependencies'
+        run: npm ci --no-audit --progress=false
+
+      - name: 'Determine version'
+        id: 'version'
+        run: |
+          if [[ -n "${{ github.event.inputs.version_override }}" ]]; then
+            VERSION="${{ github.event.inputs.version_override }}"
+          else
+            VERSION=$(node -p "require('./packages/vscode-ide-companion/package.json').version")
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG=vscode-companion-${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building version: ${VERSION}"
+
+      - name: 'Install vsce'
+        run: npm install -g @vscode/vsce
+
+      - name: 'Prepare VSCode Extension (build CLI + bundle into extension)'
+        run: npm --workspace=genesis-copilot-orion-kernel run prepackage
+        env:
+          UNIVERSAL_BUILD: 'true'
+
+      - name: 'Package VSIX'
+        working-directory: 'packages/vscode-ide-companion'
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          vsce package --no-dependencies \
+            --out "../../genesis-copilot-orion-kernel-${VERSION}.vsix"
+
+      - name: 'Upload VSIX as workflow artifact'
+        uses: 'actions/upload-artifact@v4'
+        with:
+          name: 'vsix-universal-${{ steps.version.outputs.VERSION }}'
+          path: 'genesis-copilot-orion-kernel-*.vsix'
+          if-no-files-found: 'error'
+
+      - name: 'Create GitHub Release with VSIX'
+        if: "${{ github.event.inputs.dry_run != 'true' }}"
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          TAG: '${{ steps.version.outputs.TAG }}'
+          VERSION: '${{ steps.version.outputs.VERSION }}'
+        run: |
+          gh release create "${TAG}" \
+            genesis-copilot-orion-kernel-${VERSION}.vsix \
+            --title "Genesis Copilot Orion Kernel v${VERSION}" \
+            --notes "## Installation
+
+          ### VS Code / Cursor
+          1. Download \`genesis-copilot-orion-kernel-${VERSION}.vsix\` from the assets below
+          2. **VS Code**: \`code --install-extension genesis-copilot-orion-kernel-${VERSION}.vsix\`
+          3. **Cursor**: Extensions panel → **⋯** → *Install from VSIX…*
+          4. Set your OpenRouter API key in Settings → *Genesis Orion Settings → API Key*
+          5. Get a free key at https://openrouter.ai/settings/keys
+
+          The extension uses \`qwen/qwen3-235b-a22b:free\` by default — the strongest free model on OpenRouter."

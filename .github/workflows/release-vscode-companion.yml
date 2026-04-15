@@ -37,7 +37,7 @@ jobs:
   prepare:
     runs-on: 'ubuntu-latest'
     if: |-
-      ${{ github.repository == 'QwenLM/qwen-code' }}
+      ${{ github.repository == 'QwenLM/qwen-code' || github.repository == 'Alvoradozerouno/qwen-code4EIRA' }}
     permissions:
       contents: 'read'
     outputs:
