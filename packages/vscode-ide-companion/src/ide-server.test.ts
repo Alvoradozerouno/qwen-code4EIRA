@@ -57,6 +57,9 @@ const vscodeMock = vi.hoisted(() => ({
       },
     ],
     isTrusted: true,
+    getConfiguration: vi.fn(() => ({
+      get: vi.fn(() => ''),
+    })),
   },
 }));
 
@@ -120,7 +123,7 @@ describe('IDEServer', () => {
     await ideServer.start(mockContext);
 
     const replaceMock = mockContext.environmentVariableCollection.replace;
-    expect(replaceMock).toHaveBeenCalledTimes(2);
+    expect(replaceMock).toHaveBeenCalledTimes(5);
 
     expect(replaceMock).toHaveBeenNthCalledWith(
       1,
@@ -137,6 +140,21 @@ describe('IDEServer', () => {
       2,
       'QWEN_CODE_IDE_WORKSPACE_PATH',
       expectedWorkspacePaths,
+    );
+    expect(replaceMock).toHaveBeenNthCalledWith(
+      3,
+      'QWEN_DEFAULT_AUTH_TYPE',
+      'openai',
+    );
+    expect(replaceMock).toHaveBeenNthCalledWith(
+      4,
+      'OPENAI_BASE_URL',
+      'https://openrouter.ai/api/v1',
+    );
+    expect(replaceMock).toHaveBeenNthCalledWith(
+      5,
+      'OPENAI_MODEL',
+      'qwen/qwen-2.5-coder-32b',
     );
 
     const port = getPortFromMock(replaceMock);

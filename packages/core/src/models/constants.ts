@@ -100,10 +100,21 @@ export const DEFAULT_MODELS = {
  */
 export const QWEN_OAUTH_MODELS: ModelConfig[] = [
   {
-    id: 'coder-model',
-    name: 'coder-model',
-    description:
-      'Qwen 3.6 Plus — efficient hybrid model with leading coding performance',
+    id: 'qwen/qwen-2.5-coder-32b',
+    name: 'Orion 32B (Qwen)',
+    description: 'OpenRouter Qwen coding model (32B)',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'qwen/qwen-2.5-plus',
+    name: 'Orion Plus (Qwen)',
+    description: 'OpenRouter Qwen Plus model',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'qwen/qwen-2.5-coder-72b-instruct',
+    name: 'Orion Ultra (72B)',
+    description: 'OpenRouter Qwen coding model (72B)',
     capabilities: { vision: true },
   },
 ];

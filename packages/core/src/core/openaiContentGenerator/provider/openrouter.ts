@@ -2,6 +2,10 @@ import type { Config } from '../../../config/config.js';
 import type { ContentGeneratorConfig } from '../../contentGenerator.js';
 import { DefaultOpenAICompatibleProvider } from './default.js';
 
+export const API_BASE_URL = 'https://openrouter.ai';
+export const PROVIDER_ID = 'openrouter';
+export const EXTENSION_NAME = 'Genesis Copilot Orion Kernel';
+
 export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleProvider {
   constructor(
     contentGeneratorConfig: ContentGeneratorConfig,
@@ -24,8 +28,13 @@ export class OpenRouterOpenAICompatibleProvider extends DefaultOpenAICompatibleP
     // Add OpenRouter-specific headers
     return {
       ...baseHeaders,
-      'HTTP-Referer': 'https://github.com/QwenLM/qwen-code.git',
-      'X-OpenRouter-Title': 'Qwen Code',
+      ...(this.contentGeneratorConfig.apiKey
+        ? { Authorization: `Bearer ${this.contentGeneratorConfig.apiKey}` }
+        : {}),
+      'Content-Type': 'application/json',
+      'HTTP-Referer': API_BASE_URL,
+      'X-Title': EXTENSION_NAME,
+      'X-Orion-Version': '1.0.0',
     };
   }
 }

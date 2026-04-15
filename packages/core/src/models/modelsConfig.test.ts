@@ -454,7 +454,10 @@ describe('ModelsConfig', () => {
     });
 
     // Switching within qwen-oauth triggers applyResolvedModelDefaults().
-    await modelsConfig.switchModel(AuthType.QWEN_OAUTH, 'coder-model');
+    await modelsConfig.switchModel(
+      AuthType.QWEN_OAUTH,
+      'qwen/qwen-2.5-coder-32b',
+    );
 
     const gc = currentGenerationConfig(modelsConfig);
     expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
@@ -507,7 +510,7 @@ describe('ModelsConfig', () => {
     );
 
     const gc = currentGenerationConfig(modelsConfig);
-    expect(gc.model).toBe('coder-model');
+    expect(gc.model).toBe('qwen/qwen-2.5-coder-32b');
     expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
@@ -528,8 +531,8 @@ describe('ModelsConfig', () => {
     modelsConfig.syncAfterAuthRefresh(AuthType.QWEN_OAUTH, 'gpt-4o');
 
     const gc = currentGenerationConfig(modelsConfig);
-    // Should use default qwen-oauth model (coder-model), not the OPENAI model
-    expect(gc.model).toBe('coder-model');
+    // Should use default qwen-oauth model, not the OPENAI model
+    expect(gc.model).toBe('qwen/qwen-2.5-coder-32b');
     expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
@@ -559,10 +562,10 @@ describe('ModelsConfig', () => {
 
     const gc = currentGenerationConfig(modelsConfig);
     // Should use default qwen-oauth model, not preserve manual OpenAI credentials
-    expect(gc.model).toBe('coder-model');
+    expect(gc.model).toBe('qwen/qwen-2.5-coder-32b');
     expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
     // baseUrl should be set to qwen-oauth default, not preserved from manual OpenAI config
-    expect(gc.baseUrl).toBe('DYNAMIC_QWEN_OAUTH_BASE_URL');
+    expect(gc.baseUrl).toBe('https://openrouter.ai/api/v1');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
 
@@ -638,7 +641,7 @@ describe('ModelsConfig', () => {
       modelProvidersConfig,
       generationConfig: {},
     });
-    expect(config3.getModel()).toBe('coder-model'); // Falls back to DEFAULT_QWEN_MODEL
+    expect(config3.getModel()).toBe('qwen/qwen-2.5-coder-32b'); // Falls back to DEFAULT_QWEN_MODEL
     expect(config3.getGenerationConfig().model).toBeUndefined();
   });
 

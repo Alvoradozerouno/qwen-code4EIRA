@@ -21,7 +21,8 @@ import { registerNewCommands } from './commands/index.js';
 import { ReadonlyFileSystemProvider } from './services/readonlyFileSystemProvider.js';
 import { isWindows } from './utils/platform.js';
 
-const CLI_IDE_COMPANION_IDENTIFIER = 'qwenlm.qwen-code-vscode-ide-companion';
+const CLI_IDE_COMPANION_IDENTIFIER =
+  'Alvoradozerouno.genesis-copilot-orion-kernel';
 const INFO_MESSAGE_SHOWN_KEY = 'qwenCodeInfoMessageShown';
 export const DIFF_SCHEME = 'qwen-diff';
 
@@ -90,7 +91,7 @@ async function checkForUpdates(
 
     if (latestVersion && semver.gt(latestVersion, currentVersion)) {
       const selection = await vscode.window.showInformationMessage(
-        `A new version (${latestVersion}) of the Qwen Code Companion extension is available.`,
+        `A new version (${latestVersion}) of the Genesis Copilot Orion Kernel extension is available.`,
         'Update to latest version',
       );
       if (selection === 'Update to latest version') {
@@ -108,7 +109,7 @@ async function checkForUpdates(
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  logger = vscode.window.createOutputChannel('Qwen Code Companion');
+  logger = vscode.window.createOutputChannel('Genesis Copilot Orion Kernel');
   log = createLogger(context, logger);
   log('Extension activated');
 
@@ -289,7 +290,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (!context.globalState.get(INFO_MESSAGE_SHOWN_KEY) && infoMessageEnabled) {
     void vscode.window.showInformationMessage(
-      'Qwen Code Companion extension successfully installed.',
+      'Genesis Copilot Orion Kernel extension successfully installed.',
     );
     context.globalState.update(INFO_MESSAGE_SHOWN_KEY, true);
   }
@@ -311,7 +312,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
           vscode.window.showInformationMessage(
-            'No folder open. Please open a folder to run Qwen Code.',
+            'No folder open. Please open a folder to run Orion Kernel.',
           );
           return;
         }
@@ -321,7 +322,7 @@ export async function activate(context: vscode.ExtensionContext) {
           selectedFolder = workspaceFolders[0];
         } else {
           selectedFolder = await vscode.window.showWorkspaceFolderPick({
-            placeHolder: 'Select a folder to run Qwen Code in',
+            placeHolder: 'Select a folder to run Orion Kernel in',
           });
         }
 
@@ -335,7 +336,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const execPath = process.execPath;
 
           const terminalOptions: vscode.TerminalOptions = {
-            name: `Qwen Code (${selectedFolder.name})`,
+            name: `Orion Kernel (${selectedFolder.name})`,
             cwd: selectedFolder.uri.fsPath,
             location,
           };
