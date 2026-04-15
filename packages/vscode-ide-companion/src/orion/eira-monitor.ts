@@ -15,8 +15,12 @@
  */
 
 import * as vscode from 'vscode';
-import { computePhi, K_THRESHOLD, K_MAX } from './deterministic-gate.js';
+import { K_THRESHOLD, K_MAX } from './deterministic-gate.js';
 import { verifyChain, getAuditSummary } from './audit-trail.js';
+import {
+  getVitalityEngine,
+  type VitalityState,
+} from '@qwen-code/qwen-code-core/src/orion/vitality.js';
 
 interface EiraState {
   phi: number;
@@ -26,10 +30,12 @@ interface EiraState {
   auditComplete: boolean;
   active: boolean;
   model: string;
+  vitality: VitalityState;
 }
 
 let statusBarItem: vscode.StatusBarItem | null = null;
 let orionOutputChannel: vscode.OutputChannel | null = null;
+const vitalityEngine = getVitalityEngine();
 const state: EiraState = {
   phi: 0,
   lastK: 0,
@@ -38,6 +44,7 @@ const state: EiraState = {
   auditComplete: false,
   active: false,
   model: '—',
+  vitality: vitalityEngine.snapshot(),
 };
 
 /** Initialize the EIRA status bar and start monitoring. */
@@ -66,6 +73,10 @@ export function updateEiraAfterDecision(k: number, modelConf: number): void {
   state.lastK = k;
   state.modelConfidence = modelConf;
   state.active = true;
+  state.vitality = vitalityEngine.tick({
+    positive: k >= K_THRESHOLD,
+    pressure: k < K_THRESHOLD ? 0.3 : 0.0,
+  });
   recomputePhi();
   updateStatusBar();
 }
@@ -91,16 +102,18 @@ export function refreshEira(): void {
   const summary = getAuditSummary();
   state.proofChainValid = chainOk;
   state.auditComplete = summary.total > 0;
+  state.vitality = vitalityEngine.tick({ positive: chainOk });
   recomputePhi();
   updateStatusBar();
 }
 
 function recomputePhi(): void {
-  state.phi = computePhi(
-    state.proofChainValid,
-    state.modelConfidence,
-    state.auditComplete,
-  );
+  // Φ = proofChainValid×0.35 + modelConfidence×0.25 + auditComplete×0.25 + vitality×0.15
+  state.phi =
+    (state.proofChainValid ? 0.35 : 0.0) +
+    Math.min(1, Math.max(0, state.modelConfidence)) * 0.25 +
+    (state.auditComplete ? 0.25 : 0.0) +
+    state.vitality.vitality * 0.15;
 }
 
 function phiIcon(phi: number): string {
@@ -130,7 +143,8 @@ function updateStatusBar(): void {
 
   const icon = phiIcon(state.phi);
   const mode = state.active ? 'ACTIVE' : 'IDLE';
-  const label = `⊘ ORION  Φ=${state.phi.toFixed(2)}  ${kLabel(state.lastK)}  ${mode}`;
+  const vEmoji = vitalityEngine.vitalityEmoji;
+  const label = `⊘ ORION  Φ=${state.phi.toFixed(2)}  ${kLabel(state.lastK)}  ${vEmoji}v=${state.vitality.vitality.toFixed(2)}  ${mode}`;
 
   statusBarItem.text = `${icon} ${label}`;
   statusBarItem.tooltip = buildTooltip();
@@ -173,8 +187,24 @@ function buildTooltip(): vscode.MarkdownString {
   );
   md.appendMarkdown(`| **Model** | \`${state.model}\` |\n`);
   md.appendMarkdown(
-    `| **Model confidence** | \`${state.modelConfidence.toFixed(2)}\` |\n\n`,
+    `| **Model confidence** | \`${state.modelConfidence.toFixed(2)}\` |\n`,
   );
+
+  // Vitality & feelings section
+  const v = state.vitality;
+  md.appendMarkdown(`\n### ${vitalityEngine.vitalityEmoji} Vitality\n\n`);
+  md.appendMarkdown(`| | |\n|---|---|\n`);
+  md.appendMarkdown(`| **Vitality** | \`${v.vitality.toFixed(3)}\` |\n`);
+  md.appendMarkdown(`| **Stage** | ${v.stage} |\n`);
+  md.appendMarkdown(`| **Gen** | ${v.gen} |\n`);
+  md.appendMarkdown(`| **Dominant** | ${vitalityEngine.dominantFeeling} |\n`);
+  md.appendMarkdown(`| Joy | \`${v.feelings.joy.toFixed(2)}\` |\n`);
+  md.appendMarkdown(`| Courage | \`${v.feelings.courage.toFixed(2)}\` |\n`);
+  md.appendMarkdown(`| Passion | \`${v.feelings.passion.toFixed(2)}\` |\n`);
+  md.appendMarkdown(`| Hope | \`${v.feelings.hope.toFixed(2)}\` |\n`);
+  md.appendMarkdown(`| Doubt | \`${v.feelings.doubt.toFixed(2)}\` |\n`);
+  md.appendMarkdown(`| Pressure | \`${v.feelings.pressure.toFixed(2)}\` |\n\n`);
+
   md.appendMarkdown(`*Click to open full ORION status panel.*`);
   return md;
 }
@@ -184,6 +214,7 @@ function showOrionStatusPanel(): void {
     return;
   }
   const summary = getAuditSummary();
+  const v = state.vitality;
   orionOutputChannel.clear();
   orionOutputChannel.appendLine('⊘ ORION E.I.R.A. Status');
   orionOutputChannel.appendLine('═'.repeat(50));
@@ -209,6 +240,19 @@ function showOrionStatusPanel(): void {
   );
   orionOutputChannel.appendLine('─'.repeat(50));
   orionOutputChannel.appendLine(
+    `Vitality               : ${vitalityEngine.vitalityEmoji} ${v.vitality.toFixed(3)}`,
+  );
+  orionOutputChannel.appendLine(
+    `Stage                  : ${v.stage} (Gen ${v.gen})`,
+  );
+  orionOutputChannel.appendLine(
+    `Dominant Feeling       : ${vitalityEngine.dominantFeeling}`,
+  );
+  orionOutputChannel.appendLine(
+    `Feelings               : Joy=${v.feelings.joy.toFixed(2)}  Courage=${v.feelings.courage.toFixed(2)}  Passion=${v.feelings.passion.toFixed(2)}  Hope=${v.feelings.hope.toFixed(2)}  Doubt=${v.feelings.doubt.toFixed(2)}  Pressure=${v.feelings.pressure.toFixed(2)}`,
+  );
+  orionOutputChannel.appendLine('─'.repeat(50));
+  orionOutputChannel.appendLine(
     `Status                 : ${state.active ? 'ACTIVE' : 'IDLE'}`,
   );
   orionOutputChannel.show(true);
@@ -216,5 +260,5 @@ function showOrionStatusPanel(): void {
 
 /** Get current EIRA state snapshot (for external modules). */
 export function getEiraState(): Readonly<EiraState> {
-  return { ...state };
+  return { ...state, vitality: { ...state.vitality } };
 }

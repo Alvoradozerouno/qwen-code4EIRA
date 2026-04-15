@@ -7,3 +7,4 @@
  */
 
 export * from './self-consistency.js';
+export * from './vitality.js';
