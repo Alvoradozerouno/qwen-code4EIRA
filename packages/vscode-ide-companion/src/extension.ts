@@ -26,6 +26,7 @@ import {
   setProofChainValid,
   recordSystemEvent,
   initAuditTrail,
+  verifyChain,
   configureConsistencyGate,
   readGateConfigFromSettings,
 } from './orion/index.js';
@@ -152,7 +153,15 @@ export async function activate(context: vscode.ExtensionContext) {
   const initialModel =
     config.get<string>('model') ?? 'qwen/qwen3-235b-a22b:free';
   updateEiraModel(initialModel, 0.9);
-  setProofChainValid(true);
+  // Verify audit chain integrity at startup — sets proof chain status before
+  // any new decisions are recorded. Runs synchronously (reads local disk only).
+  const chainIntact = verifyChain();
+  setProofChainValid(chainIntact);
+  if (!chainIntact) {
+    log(
+      'ORION WARNING: audit chain integrity check FAILED — chain may have been tampered with.',
+    );
+  }
   recordSystemEvent('ORION_KERNEL_ACTIVATED');
 
   // ── Consistency Gate ─────────────────────────────────────────────────

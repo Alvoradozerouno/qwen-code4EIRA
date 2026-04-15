@@ -121,7 +121,13 @@ export async function proveWithConsistency(
   const cfg = gateConfig ?? readGateConfigFromSettings();
 
   // Without config or when disabled — use standard synthetic evidence
+  // WARN: synthetic confidence (0.85) is a fixed heuristic, not real model probing.
+  // Enable genesis.orion.selfConsistency + set genesis.orion.apiKey for real K values.
   if (!cfg || !cfg.enabled) {
+    console.warn(
+      '[ORION] selfConsistency is disabled — using synthetic confidence 0.85. ' +
+        'Set genesis.orion.selfConsistency=true + genesis.orion.apiKey for real K probing.',
+    );
     const evidence = evidenceFromConfidence(0.85);
     const gateResult = prove(rule, evidence, phi);
     recordGateDecision(gateResult, rule);
