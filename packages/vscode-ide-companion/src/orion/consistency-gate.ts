@@ -55,6 +55,15 @@ interface ConsistencyGateConfig {
   probeCount?: number;
 }
 
+/**
+ * Module-level gate config.
+ *
+ * Thread-safety note: VSCode extension host runs on Node.js, which is single-
+ * threaded. All calls to configureConsistencyGate() originate from the same
+ * event-loop thread (activation + onDidChangeConfiguration), so there is no
+ * concurrent-write risk in practice. If this module is ever used outside the
+ * extension host context, wrap writes in a proper mutex.
+ */
 let gateConfig: ConsistencyGateConfig | null = null;
 
 /**

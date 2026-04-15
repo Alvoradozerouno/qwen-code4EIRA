@@ -114,13 +114,30 @@ function meanPairwiseSimilarity(texts: string[]): number {
 }
 
 /**
- * Map raw Jaccard similarity to a usable confidence score.
+ * Similarity band boundaries for the piecewise confidence mapping.
  *
- * Mapping rationale:
- *  - similarity >= 0.85: responses nearly identical → very high confidence
- *  - similarity 0.60–0.85: strong overlap → good confidence
- *  - similarity 0.35–0.60: moderate overlap → moderate confidence
- *  - similarity < 0.35: divergent responses → low confidence, gate should ABSTAIN
+ * Tuned so that:
+ *  - VERY_HIGH (0.85+): nearly identical responses → confidence 0.75–1.0
+ *    At this level K will exceed 3.2 (PROVEN) even with conservative evidence.
+ *  - HIGH (0.60+):      strong overlap → confidence 0.55–0.75
+ *    May produce PROVEN for low-stakes rules.
+ *  - MODERATE (0.35+):  some overlap → confidence 0.30–0.55
+ *    Will typically ABSTAIN. Safe floor for uncertain decisions.
+ *  - LOW (<0.35):       divergent responses → confidence 0–0.30
+ *    Gate will ABSTAIN. User should re-phrase or increase n.
+ */
+const SIM_VERY_HIGH = 0.85; // lower bound of very-high band
+const SIM_HIGH = 0.6; // lower bound of high band
+const SIM_MODERATE = 0.35; // lower bound of moderate band
+
+// Confidence output at each band boundary
+const CONF_AT_VERY_HIGH_LOW = 0.75; // confidence when similarity === SIM_VERY_HIGH
+const CONF_AT_HIGH_LOW = 0.55; // confidence when similarity === SIM_HIGH
+const CONF_AT_MODERATE_LOW = 0.3; // confidence when similarity === SIM_MODERATE
+
+/**
+ * Map raw Jaccard similarity to a usable confidence score using a piecewise
+ * linear function bounded by the SIM_* / CONF_AT_* constants above.
  *
  * The mapping is deliberately conservative to avoid false positives.
  */
@@ -129,16 +146,28 @@ function similarityToConfidence(similarity: number): number {
   const s = Math.min(1, Math.max(0, similarity));
 
   // Piecewise linear mapping — tuned to produce K≥3.2 only when truly consistent
-  if (s >= 0.85) {
-    return 0.75 + 0.25 * ((s - 0.85) / 0.15); // 0.75 → 1.0
+  if (s >= SIM_VERY_HIGH) {
+    const span = 1 - SIM_VERY_HIGH; // 0.15
+    return (
+      CONF_AT_VERY_HIGH_LOW +
+      (1 - CONF_AT_VERY_HIGH_LOW) * ((s - SIM_VERY_HIGH) / span)
+    ); // 0.75 → 1.0
   }
-  if (s >= 0.6) {
-    return 0.55 + 0.2 * ((s - 0.6) / 0.25); // 0.55 → 0.75
+  if (s >= SIM_HIGH) {
+    const span = SIM_VERY_HIGH - SIM_HIGH; // 0.25
+    return (
+      CONF_AT_HIGH_LOW +
+      (CONF_AT_VERY_HIGH_LOW - CONF_AT_HIGH_LOW) * ((s - SIM_HIGH) / span)
+    ); // 0.55 → 0.75
   }
-  if (s >= 0.35) {
-    return 0.3 + 0.25 * ((s - 0.35) / 0.25); // 0.30 → 0.55
+  if (s >= SIM_MODERATE) {
+    const span = SIM_HIGH - SIM_MODERATE; // 0.25
+    return (
+      CONF_AT_MODERATE_LOW +
+      (CONF_AT_HIGH_LOW - CONF_AT_MODERATE_LOW) * ((s - SIM_MODERATE) / span)
+    ); // 0.30 → 0.55
   }
-  return s * (0.3 / 0.35); // 0 → 0.30
+  return s * (CONF_AT_MODERATE_LOW / SIM_MODERATE); // 0 → 0.30
 }
 
 /**

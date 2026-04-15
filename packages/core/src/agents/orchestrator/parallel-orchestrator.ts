@@ -121,11 +121,11 @@ function withTimeout<T>(
  */
 function topoWaves(tasks: OrchestratorTask[]): OrchestratorTask[][] {
   const nameSet = new Set(tasks.map((t) => t.name));
-  const indegree = new Map<string, number>();
+  const inDegree = new Map<string, number>();
   const adjacency = new Map<string, string[]>(); // dependency → dependents
 
   for (const task of tasks) {
-    indegree.set(task.name, 0);
+    inDegree.set(task.name, 0);
     adjacency.set(task.name, []);
   }
 
@@ -135,7 +135,7 @@ function topoWaves(tasks: OrchestratorTask[]): OrchestratorTask[][] {
         throw new Error(`Task "${task.name}" depends on unknown task "${dep}"`);
       }
       adjacency.get(dep)!.push(task.name);
-      indegree.set(task.name, (indegree.get(task.name) ?? 0) + 1);
+      inDegree.set(task.name, (inDegree.get(task.name) ?? 0) + 1);
     }
   }
 
@@ -143,9 +143,9 @@ function topoWaves(tasks: OrchestratorTask[]): OrchestratorTask[][] {
   const remaining = new Set(tasks.map((t) => t.name));
 
   while (remaining.size > 0) {
-    // All tasks with indegree 0 can run in this wave
+    // All tasks with inDegree 0 can run in this wave
     const wave = tasks.filter(
-      (t) => remaining.has(t.name) && (indegree.get(t.name) ?? 0) === 0,
+      (t) => remaining.has(t.name) && (inDegree.get(t.name) ?? 0) === 0,
     );
 
     if (wave.length === 0) {
@@ -159,7 +159,7 @@ function topoWaves(tasks: OrchestratorTask[]): OrchestratorTask[][] {
     for (const task of wave) {
       remaining.delete(task.name);
       for (const dependent of adjacency.get(task.name) ?? []) {
-        indegree.set(dependent, (indegree.get(dependent) ?? 0) - 1);
+        inDegree.set(dependent, (inDegree.get(dependent) ?? 0) - 1);
       }
     }
   }
@@ -263,6 +263,13 @@ export class OrchestratorRun {
 }
 
 // ── ParallelOrchestrator ───────────────────────────────────────────────────
+
+/**
+ * Base delay in milliseconds for exponential-ish back-off between retries.
+ * Retry N uses delay = RETRY_BACKOFF_BASE_MS * N (linear, not exponential,
+ * to keep total wait bounded for small retry budgets).
+ */
+const RETRY_BACKOFF_BASE_MS = 500;
 
 /**
  * Orchestrates multiple tasks with dependency ordering and concurrency control.
@@ -383,8 +390,10 @@ export class ParallelOrchestrator {
           if (attempts > maxRetries) {
             break;
           }
-          // Brief back-off before retry
-          await new Promise((r) => setTimeout(r, 500 * attempts));
+          // Brief back-off before retry (linear: RETRY_BACKOFF_BASE_MS × attempt)
+          await new Promise((r) =>
+            setTimeout(r, RETRY_BACKOFF_BASE_MS * attempts),
+          );
         }
       }
 
