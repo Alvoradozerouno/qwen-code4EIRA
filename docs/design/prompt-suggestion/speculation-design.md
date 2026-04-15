@@ -82,29 +82,14 @@ User sees suggestion "commit this"
 
 ## Copy-on-Write Overlay
 
-```
-Real CWD: /home/user/project/
-Overlay:  /tmp/qwen-speculation/12345/a1b2c3d4/
+Real implementation: [`packages/core/src/followup/overlayFs.ts`](../../../packages/core/src/followup/overlayFs.ts)
 
-Write to src/app.ts:
-  1. Copy /home/user/project/src/app.ts → overlay/src/app.ts (first time only)
-  2. Tool writes to overlay/src/app.ts
-
-Read from src/app.ts:
-  - If in writtenFiles → read from overlay/src/app.ts
-  - Otherwise → read from /home/user/project/src/app.ts
-
-New file (src/new.ts):
-  - Create overlay/src/new.ts directly (no original to copy)
-
-Accept:
-  - copyFile(overlay/src/app.ts → /home/user/project/src/app.ts)
-  - copyFile(overlay/src/new.ts → /home/user/project/src/new.ts)
-  - rm -rf overlay/
-
-Abort:
-  - rm -rf overlay/
-```
+- Overlay root: `/tmp/qwen-speculation/{pid}/{id}/`
+- On write: original file copied to overlay on first write (copy-on-write semantics)
+- On read: resolves to overlay path if previously written, otherwise to real CWD
+- New files are created directly in the overlay
+- On accept (`applyToReal()`): overlay files are copied back to the real filesystem
+- On abort: overlay directory deleted without touching the real filesystem
 
 ## Tool Gate Security
 
@@ -136,18 +121,11 @@ When a boundary is hit mid-turn:
 
 ## Pipelined Suggestion
 
-After speculation completes (no boundary), a second LLM call generates the **next** suggestion:
+After speculation completes (no boundary), a second LLM call generates the **next** suggestion.
 
-```
-Context: original conversation + "commit this" + speculated messages
-→ LLM predicts: "push it"
-→ Stored in state.pipelinedSuggestion
-→ On accept: setPromptSuggestion("push it") — appears instantly
-```
+Real implementation: [`packages/core/src/followup/speculation.ts`](../../../packages/core/src/followup/speculation.ts) — `generatePipelinedSuggestion()`
 
-This enables Tab-Tab-Tab workflows where each acceptance immediately shows the next step.
-
-The pipelined suggestion reuses the exported `SUGGESTION_PROMPT` constant from `suggestionGenerator.ts` (not a local copy) to ensure consistent quality with initial suggestions.
+The pipelined suggestion reuses the exported `SUGGESTION_PROMPT` constant from `suggestionGenerator.ts` (not a local copy) to ensure consistent quality with initial suggestions. Stored in `state.pipelinedSuggestion`; on accept, `setPromptSuggestion()` surfaces it instantly, enabling Tab-Tab-Tab workflows.
 
 ## Fast Model
 
@@ -167,14 +145,7 @@ This shows the user the full speculation output including tool call details, not
 
 ### CacheSafeParams
 
-```typescript
-interface CacheSafeParams {
-  generationConfig: GenerateContentConfig; // systemInstruction + tools
-  history: Content[]; // curated, max 40 entries
-  model: string;
-  version: number; // increments on config changes
-}
-```
+Real implementation: [`packages/core/src/followup/forkedQuery.ts`](../../../packages/core/src/followup/forkedQuery.ts) — `export interface CacheSafeParams`
 
 - Saved after each successful main turn in `GeminiClient.sendMessageStream()`
 - Cleared on `startChat()` / `resetChat()` to prevent cross-session leakage
@@ -213,3 +184,5 @@ packages/core/src/followup/
 ├── speculation.ts            # Speculation engine (start/accept/abort)
 └── index.ts                  # Module exports
 ```
+
+Source: [`packages/core/src/followup/`](../../../packages/core/src/followup/)
