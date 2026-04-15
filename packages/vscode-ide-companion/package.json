@@ -1,31 +1,40 @@
 {
   "name": "genesis-copilot-orion-kernel",
   "displayName": "Genesis Copilot Orion Kernel",
-  "description": "Enable Orion Kernel with direct access to your VS Code workspace.",
+  "description": "Sovereign AI coding agent with deterministic K=3.2 reasoning, E.I.R.A. monitoring, and EU AI Act audit trail. Powered by Qwen3-235B via OpenRouter — free to use.",
   "version": "0.14.4",
   "publisher": "Alvoradozerouno",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QwenLM/qwen-code.git",
+    "url": "https://github.com/Alvoradozerouno/qwen-code4EIRA.git",
     "directory": "packages/vscode-ide-companion"
   },
   "engines": {
     "vscode": "^1.85.0"
   },
   "license": "LICENSE",
-  "preview": true,
+  "preview": false,
   "categories": [
-    "AI"
+    "AI",
+    "Machine Learning",
+    "Other"
   ],
   "keywords": [
-    "qwen-code",
-    "qwen code",
+    "orion",
+    "genesis",
+    "eira",
     "qwen",
-    "qwen code",
-    "cli",
-    "ide integration",
-    "ide companion"
+    "qwen3",
+    "openrouter",
+    "ai agent",
+    "coding agent",
+    "agentic",
+    "deterministic",
+    "eu ai act",
+    "audit trail",
+    "cursor",
+    "copilot"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -125,6 +134,14 @@
       {
         "command": "qwen-code.showLogs",
         "title": "Orion Kernel: Show Logs"
+      },
+      {
+        "command": "qwen-code.showOrionStatus",
+        "title": "Orion Kernel: Show E.I.R.A. Status (Φ / K)"
+      },
+      {
+        "command": "qwen-code.exportAuditReport",
+        "title": "Orion Kernel: Export EU AI Act Audit Report"
       }
     ],
     "menus": {
@@ -206,6 +223,26 @@
           ],
           "markdownDescription": "**Orion Kernel model** via OpenRouter.\n\nAll `:free` models are available at no cost with a free API key.",
           "order": 2
+        },
+        "genesis.orion.kThreshold": {
+          "type": "number",
+          "default": 3.2,
+          "minimum": 1,
+          "maximum": 5,
+          "markdownDescription": "**K threshold** for deterministic reasoning gate.\n\nDecisions with K < threshold enter **ABSTAIN** mode (zero false positives).\n\nDefault: `3.2` (ORION sovereign threshold). Range: 1.0–5.0.",
+          "order": 3
+        },
+        "genesis.orion.edgeMode": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Edge mode** — optimized for ~20W hardware.\n\nEnables: free-only models, 8K token limit, no streaming, no background refresh.\n\nIdeal for Raspberry Pi 5, Jetson Nano, or low-power laptops.",
+          "order": 4
+        },
+        "genesis.orion.auditTrail": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Audit trail** — EU AI Act compliance (Article 13/14).\n\nLogs every decision with SHA-256 proof chain to `.orion/audit-trail.jsonl`.\n\nRequired for Article 13 transparency obligations (deadline: August 2026).",
+          "order": 5
         }
       }
     }

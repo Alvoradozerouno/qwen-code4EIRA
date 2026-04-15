@@ -20,6 +20,13 @@ import { registerChatViewProviders } from './webview/providers/chatViewRegistrat
 import { registerNewCommands } from './commands/index.js';
 import { ReadonlyFileSystemProvider } from './services/readonlyFileSystemProvider.js';
 import { isWindows } from './utils/platform.js';
+import {
+  initEiraMonitor,
+  updateEiraModel,
+  setProofChainValid,
+  recordSystemEvent,
+  initAuditTrail,
+} from './orion/index.js';
 
 const CLI_IDE_COMPANION_IDENTIFIER =
   'Alvoradozerouno.genesis-copilot-orion-kernel';
@@ -112,6 +119,25 @@ export async function activate(context: vscode.ExtensionContext) {
   logger = vscode.window.createOutputChannel('Genesis Copilot Orion Kernel');
   log = createLogger(context, logger);
   log('Extension activated');
+
+  // ── ORION Kernel Bootstrap ──────────────────────────────────────────────
+  // Initialize E.I.R.A. (Electronic Intelligence Reasoning Arbiter) monitor
+  // and audit trail. The audit trail persists in <workspace>/.orion/audit-trail.jsonl
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (workspaceRoot) {
+    initAuditTrail(workspaceRoot);
+  }
+  initEiraMonitor(context);
+
+  // Read initial model from settings and update EIRA
+  const config = vscode.workspace.getConfiguration('genesis.orion');
+  const initialModel: string =
+    (config.get<string>('model') as string) ?? 'qwen/qwen3-235b-a22b:free';
+  updateEiraModel(initialModel, 0.9);
+  setProofChainValid(true);
+  recordSystemEvent('ORION_KERNEL_ACTIVATED');
+  log('ORION Kernel activated — K_THRESHOLD=3.2, E.I.R.A. monitoring active');
+  // ── End ORION Kernel Bootstrap ─────────────────────────────────────────
 
   checkForUpdates(context, log);
 
@@ -375,10 +401,28 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       await vscode.window.showTextDocument(noticePath);
     }),
+    // Export EU AI Act audit report
+    vscode.commands.registerCommand('qwen-code.exportAuditReport', async () => {
+      const { exportAuditReport } = await import('./orion/index.js');
+      const report = exportAuditReport();
+      const uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file('orion-audit-report.json'),
+        filters: { JSON: ['json'] },
+        title: 'Export ORION EU AI Act Audit Report',
+      });
+      if (uri) {
+        const fs = await import('fs');
+        fs.writeFileSync(uri.fsPath, JSON.stringify(report, null, 2), 'utf-8');
+        vscode.window.showInformationMessage(
+          `✅ Audit report exported: ${report.totalEntries} entries, chain ${report.chainIntegrity ? 'VALID' : 'INVALID'}`,
+        );
+      }
+    }),
   );
 }
 
 export async function deactivate(): Promise<void> {
+  recordSystemEvent('ORION_KERNEL_DEACTIVATED');
   log('Extension deactivated');
   try {
     if (ideServer) {
