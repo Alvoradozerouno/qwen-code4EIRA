@@ -73,17 +73,24 @@ export function computeK(evidence: EvidenceBase): number {
  * Compute the Phi integrity score.
  *
  * Phi measures overall system integrity independent of K.
- * Formula: Phi = proofChainValid×0.4 + modelConfidence×0.3 + auditComplete×0.3
+ * Formula: Φ = proofChainValid×0.35 + modelConfidence×0.25 + auditComplete×0.25 + vitality×0.15
+ *
+ * @param proofChainValid - Whether the SHA-256 audit chain is unbroken
+ * @param modelConfidence - Model confidence [0..1]
+ * @param auditComplete   - Whether at least one audit entry exists
+ * @param vitality        - VitalityEngine score [0..1] (default 0.0 when not available)
  */
 export function computePhi(
   proofChainValid: boolean,
   modelConfidence: number,
   auditComplete: boolean,
+  vitality: number = 0.0,
 ): number {
   return (
-    (proofChainValid ? 0.4 : 0.0) +
-    Math.min(1, Math.max(0, modelConfidence)) * 0.3 +
-    (auditComplete ? 0.3 : 0.0)
+    (proofChainValid ? 0.35 : 0.0) +
+    Math.min(1, Math.max(0, modelConfidence)) * 0.25 +
+    (auditComplete ? 0.25 : 0.0) +
+    Math.min(1, Math.max(0, vitality)) * 0.15
   );
 }
 

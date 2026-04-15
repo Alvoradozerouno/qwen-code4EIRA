@@ -17,6 +17,7 @@ import type {
 import { ApprovalMode, type Config } from '../config/config.js';
 import { createDebugLogger } from '../utils/debugLogger.js';
 import { microcompactHistory } from '../services/microcompaction/microcompact.js';
+import { getProjectMemory } from '../services/projectMemoryService.js';
 
 const debugLogger = createDebugLogger('CLIENT');
 
@@ -247,16 +248,42 @@ export class GeminiClient {
     const overrideSystemPrompt = this.config.getSystemPrompt();
     const appendSystemPrompt = this.config.getAppendSystemPrompt();
 
+    // Append ORION project memory context so the agent has cross-session recall
+    const projectMemoryContext = (() => {
+      try {
+        const cwd = this.config.getWorkingDir();
+        if (cwd) {
+          const mem = getProjectMemory(cwd);
+          const ctx = mem.getProjectContext({ maxSummaries: 3, maxFacts: 20 });
+          // Only inject if there is actual content (fresh projects return minimal context)
+          if (
+            ctx.includes('### Recent Sessions') ||
+            ctx.includes('### Stored Facts') ||
+            ctx.includes('### Preferences')
+          ) {
+            return ctx;
+          }
+        }
+      } catch {
+        // Memory read must never crash the session
+      }
+      return '';
+    })();
+
+    const combinedMemory = [userMemory, projectMemoryContext]
+      .filter(Boolean)
+      .join('\n\n');
+
     if (overrideSystemPrompt) {
       return getCustomSystemPrompt(
         overrideSystemPrompt,
-        userMemory,
+        combinedMemory,
         appendSystemPrompt,
       );
     }
 
     return getCoreSystemPrompt(
-      userMemory,
+      combinedMemory,
       this.config.getModel(),
       appendSystemPrompt,
     );
