@@ -29,6 +29,7 @@ interface EiraState {
 }
 
 let statusBarItem: vscode.StatusBarItem | null = null;
+let orionOutputChannel: vscode.OutputChannel | null = null;
 const state: EiraState = {
   phi: 0,
   lastK: 0,
@@ -46,7 +47,8 @@ export function initEiraMonitor(context: vscode.ExtensionContext): void {
     100,
   );
   statusBarItem.command = 'qwen-code.showOrionStatus';
-  context.subscriptions.push(statusBarItem);
+  orionOutputChannel = vscode.window.createOutputChannel('ORION E.I.R.A.');
+  context.subscriptions.push(statusBarItem, orionOutputChannel);
 
   // Register command to show full status in output panel
   context.subscriptions.push(
@@ -178,23 +180,38 @@ function buildTooltip(): vscode.MarkdownString {
 }
 
 function showOrionStatusPanel(): void {
+  if (!orionOutputChannel) {
+    return;
+  }
   const summary = getAuditSummary();
-  const report = [
-    '⊘ ORION E.I.R.A. Status',
-    '═'.repeat(50),
+  orionOutputChannel.clear();
+  orionOutputChannel.appendLine('⊘ ORION E.I.R.A. Status');
+  orionOutputChannel.appendLine('═'.repeat(50));
+  orionOutputChannel.appendLine(
     `Phi (System Integrity) : ${state.phi.toFixed(4)}`,
+  );
+  orionOutputChannel.appendLine(
     `K (last decision)      : ${state.lastK.toFixed(3)} / ${K_MAX} (threshold: ${K_THRESHOLD})`,
-    `Model                  : ${state.model}`,
+  );
+  orionOutputChannel.appendLine(`Model                  : ${state.model}`);
+  orionOutputChannel.appendLine(
     `Model Confidence       : ${state.modelConfidence.toFixed(2)}`,
+  );
+  orionOutputChannel.appendLine(
     `Proof Chain            : ${state.proofChainValid ? 'VALID' : 'INVALID ⚠'}`,
+  );
+  orionOutputChannel.appendLine(
     `Audit Complete         : ${state.auditComplete ? 'YES' : 'NO'}`,
-    `Audit Entries          : ${summary.total}`,
+  );
+  orionOutputChannel.appendLine(`Audit Entries          : ${summary.total}`);
+  orionOutputChannel.appendLine(
     `Chain Hash (last 16)   : ${summary.lastSha256}`,
-    '─'.repeat(50),
+  );
+  orionOutputChannel.appendLine('─'.repeat(50));
+  orionOutputChannel.appendLine(
     `Status                 : ${state.active ? 'ACTIVE' : 'IDLE'}`,
-  ].join('\n');
-
-  vscode.window.showInformationMessage(report, { modal: false });
+  );
+  orionOutputChannel.show(true);
 }
 
 /** Get current EIRA state snapshot (for external modules). */

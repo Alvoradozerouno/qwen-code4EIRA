@@ -74,7 +74,7 @@ Einmalige Schritte, um die Extension öffentlich auf dem VS Code Marketplace und
 
 ### 6a. PR mergen
 
-Merge den PR `copilot/refactor-qwen-extension-openrouter` → `main`.
+Merge deinen Feature-PR → `main`.
 
 ### 6b. Release Workflow triggern
 

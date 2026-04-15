@@ -131,8 +131,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Read initial model from settings and update EIRA
   const config = vscode.workspace.getConfiguration('genesis.orion');
-  const initialModel: string =
-    (config.get<string>('model') as string) ?? 'qwen/qwen3-235b-a22b:free';
+  const initialModel =
+    config.get<string>('model') ?? 'qwen/qwen3-235b-a22b:free';
   updateEiraModel(initialModel, 0.9);
   setProofChainValid(true);
   recordSystemEvent('ORION_KERNEL_ACTIVATED');
