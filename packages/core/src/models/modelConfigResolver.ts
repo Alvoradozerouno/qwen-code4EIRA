@@ -319,6 +319,8 @@ function resolveQwenOAuthConfig(
       layer(settings.apiKey, settingsSource('security.auth.apiKey')),
     );
   }
+  // API key precedence for Orion/OpenRouter fallback:
+  // 1) explicit Orion key, 2) OpenRouter key, 3) generic OpenAI key.
   apiKeyLayers.push(envLayer(env, 'GENESIS_ORION_API_KEY'));
   apiKeyLayers.push(envLayer(env, 'OPENROUTER_API_KEY'));
   apiKeyLayers.push(envLayer(env, 'OPENAI_API_KEY'));
@@ -333,18 +335,11 @@ function resolveQwenOAuthConfig(
     defaultSource('OpenRouter default'),
   );
 
-  const customHeaders = {
-    'Content-Type': 'application/json',
-    'HTTP-Referer': 'https://openrouter.ai',
-    'X-Title': 'Genesis Copilot Orion Kernel',
-    'X-Orion-Version': '1.0.0',
-  };
-
   if (apiKeyResult) {
     sources['apiKey'] = apiKeyResult.source;
+    sources['customHeaders'] = computedSource('OpenRouter static headers');
   }
   sources['baseUrl'] = baseUrlResult.source;
-  sources['customHeaders'] = computedSource('OpenRouter static headers');
   sources['authType'] = computedSource('provided by caller');
 
   if (proxy) {
@@ -365,7 +360,16 @@ function resolveQwenOAuthConfig(
     model: resolvedModel,
     apiKey: apiKeyResult?.value,
     baseUrl: baseUrlResult.value,
-    customHeaders,
+    ...(apiKeyResult
+      ? {
+          customHeaders: {
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://openrouter.ai',
+            'X-Title': 'Genesis Copilot Orion Kernel',
+            'X-Orion-Version': '1.0.0',
+          },
+        }
+      : {}),
     proxy,
     ...generationConfig,
   };
