@@ -319,8 +319,12 @@ function resolveQwenOAuthConfig(
       layer(settings.apiKey, settingsSource('security.auth.apiKey')),
     );
   }
-  // API key precedence for Orion/OpenRouter fallback:
-  // 1) explicit Orion key, 2) OpenRouter key, 3) generic OpenAI key.
+  // API key precedence for Orion/OpenRouter (highest → lowest):
+  // 1) --openai-api-key CLI flag
+  // 2) security.auth.apiKey settings file field
+  // 3) GENESIS_ORION_API_KEY env var
+  // 4) OPENROUTER_API_KEY env var
+  // 5) OPENAI_API_KEY env var
   apiKeyLayers.push(envLayer(env, 'GENESIS_ORION_API_KEY'));
   apiKeyLayers.push(envLayer(env, 'OPENROUTER_API_KEY'));
   apiKeyLayers.push(envLayer(env, 'OPENAI_API_KEY'));

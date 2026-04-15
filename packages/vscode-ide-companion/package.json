@@ -182,7 +182,7 @@
         "genesis.orion.apiKey": {
           "type": "string",
           "default": "",
-          "markdownDescription": "**OpenRouter API-Key** für Orion Kernel.\n\nKostenlosen Key auf [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys) erstellen.\n\nDanach nutzt Orion Kernel automatisch `qwen/qwen3-235b-a22b:free` – das stärkste kostenlose Modell.",
+          "markdownDescription": "**OpenRouter API Key** for Orion Kernel requests.\n\nGet a free key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).\n\nOnce set, Orion Kernel automatically uses `qwen/qwen3-235b-a22b:free` — the strongest free model.",
           "order": 1
         },
         "genesis.orion.model": {
@@ -197,14 +197,14 @@
             "qwen/qwen-2.5-plus"
           ],
           "enumDescriptions": [
-            "Qwen3 235B MoE – stärkstes kostenloses Modell (empfohlen)",
-            "Qwen3 32B Dense – kostenlos, gut für Code",
-            "Qwen3 30B MoE – schnell und kostenlos",
-            "Qwen2.5-Coder 32B – spezialisiertes Coding-Modell (kostenpflichtig)",
-            "Qwen2.5-Coder 72B Instruct (kostenpflichtig)",
-            "Qwen2.5-Plus Allzweck (kostenpflichtig)"
+            "Qwen3 235B MoE – strongest free model (recommended)",
+            "Qwen3 32B Dense – free, great for code",
+            "Qwen3 30B MoE – fast and free",
+            "Qwen2.5-Coder 32B – specialized coding model (paid)",
+            "Qwen2.5-Coder 72B Instruct (paid)",
+            "Qwen2.5-Plus general purpose (paid)"
           ],
-          "markdownDescription": "**Orion Kernel Modell** via OpenRouter.\n\nMit dem kostenlosen API-Key sind alle `:free`-Modelle ohne Kosten nutzbar.",
+          "markdownDescription": "**Orion Kernel model** via OpenRouter.\n\nAll `:free` models are available at no cost with a free API key.",
           "order": 2
         }
       }
