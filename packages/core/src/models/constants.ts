@@ -83,9 +83,9 @@ export const AUTH_ENV_MAPPINGS = {
     model: ['GOOGLE_MODEL'],
   },
   'qwen-oauth': {
-    apiKey: [],
-    baseUrl: [],
-    model: [],
+    apiKey: ['GENESIS_ORION_API_KEY', 'OPENROUTER_API_KEY', 'OPENAI_API_KEY'],
+    baseUrl: ['OPENAI_BASE_URL'],
+    model: ['OPENAI_MODEL'],
   },
 } as const satisfies Record<AuthType, AuthEnvMapping>;
 
@@ -100,21 +100,39 @@ export const DEFAULT_MODELS = {
  */
 export const QWEN_OAUTH_MODELS: ModelConfig[] = [
   {
-    id: 'qwen/qwen-2.5-coder-32b',
-    name: 'Orion 32B (Qwen)',
-    description: 'OpenRouter Qwen coding model (32B)',
-    capabilities: { vision: true },
+    id: 'qwen/qwen3-235b-a22b:free',
+    name: 'Orion Ultra Free (Qwen3 235B)',
+    description: 'Stärkstes kostenloses Qwen3-MoE-Modell via OpenRouter',
+    capabilities: { vision: false },
   },
   {
-    id: 'qwen/qwen-2.5-plus',
-    name: 'Orion Plus (Qwen)',
-    description: 'OpenRouter Qwen Plus model',
+    id: 'qwen/qwen3-32b:free',
+    name: 'Orion 32B Free (Qwen3)',
+    description: 'Qwen3 32B Dense – kostenlos via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'qwen/qwen3-30b-a3b:free',
+    name: 'Orion Fast Free (Qwen3 30B)',
+    description: 'Qwen3 30B MoE – schnell und kostenlos via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'qwen/qwen-2.5-coder-32b',
+    name: 'Orion Coder 32B (Qwen2.5)',
+    description: 'Qwen2.5-Coder 32B – optimiert für Code via OpenRouter',
     capabilities: { vision: true },
   },
   {
     id: 'qwen/qwen-2.5-coder-72b-instruct',
-    name: 'Orion Ultra (72B)',
-    description: 'OpenRouter Qwen coding model (72B)',
+    name: 'Orion Coder Ultra 72B (Qwen2.5)',
+    description: 'Qwen2.5-Coder 72B Instruct via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'qwen/qwen-2.5-plus',
+    name: 'Orion Plus (Qwen2.5)',
+    description: 'Qwen2.5-Plus – Allzweck-Modell via OpenRouter',
     capabilities: { vision: true },
   },
 ];

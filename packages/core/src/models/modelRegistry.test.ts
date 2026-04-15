@@ -16,7 +16,7 @@ describe('ModelRegistry', () => {
 
       const qwenModels = registry.getModelsForAuthType(AuthType.QWEN_OAUTH);
       expect(qwenModels.length).toBe(QWEN_OAUTH_MODELS.length);
-      expect(qwenModels[0].id).toBe('qwen/qwen-2.5-coder-32b');
+      expect(qwenModels[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
     it('should initialize with empty config', () => {
@@ -192,7 +192,7 @@ describe('ModelRegistry', () => {
       const defaultModel = registry.getDefaultModelForAuthType(
         AuthType.QWEN_OAUTH,
       );
-      expect(defaultModel?.id).toBe('qwen/qwen-2.5-coder-32b');
+      expect(defaultModel?.id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
     it('should return first model for other authTypes', () => {
@@ -226,7 +226,7 @@ describe('ModelRegistry', () => {
       const registry = new ModelRegistry();
       const model = registry.getModel(
         AuthType.QWEN_OAUTH,
-        'qwen/qwen-2.5-coder-32b',
+        'qwen/qwen3-235b-a22b:free',
       );
       expect(model?.baseUrl).toBe('https://openrouter.ai/api/v1');
     });
@@ -425,7 +425,7 @@ describe('ModelRegistry', () => {
         QWEN_OAUTH_MODELS.length,
       );
       expect(
-        registry.getModel(AuthType.QWEN_OAUTH, 'qwen/qwen-2.5-coder-32b'),
+        registry.getModel(AuthType.QWEN_OAUTH, 'qwen/qwen3-235b-a22b:free'),
       ).toBeDefined();
     });
 

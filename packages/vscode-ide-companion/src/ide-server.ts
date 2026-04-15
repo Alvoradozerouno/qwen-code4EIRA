@@ -46,7 +46,7 @@ const OPENAI_BASE_URL_ENV_VAR = 'OPENAI_BASE_URL';
 const OPENAI_MODEL_ENV_VAR = 'OPENAI_MODEL';
 const QWEN_DEFAULT_AUTH_TYPE_ENV_VAR = 'QWEN_DEFAULT_AUTH_TYPE';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-const ORION_DEFAULT_MODEL = 'qwen/qwen-2.5-coder-32b';
+const ORION_DEFAULT_MODEL = 'qwen/qwen3-235b-a22b:free';
 const QWEN_DIR = '.qwen';
 const IDE_DIR = 'ide';
 
@@ -98,14 +98,14 @@ async function writePortAndWorkspace({
     OPENAI_BASE_URL_ENV_VAR,
     OPENROUTER_BASE_URL,
   );
+  const cfg = vscode.workspace.getConfiguration();
+  const orionModel =
+    cfg.get<string>('genesis.orion.model')?.trim() || ORION_DEFAULT_MODEL;
   context.environmentVariableCollection.replace(
     OPENAI_MODEL_ENV_VAR,
-    ORION_DEFAULT_MODEL,
+    orionModel,
   );
-  const orionApiKey = vscode.workspace
-    .getConfiguration()
-    .get<string>('genesis.orion.apiKey')
-    ?.trim();
+  const orionApiKey = cfg.get<string>('genesis.orion.apiKey')?.trim();
   if (orionApiKey) {
     context.environmentVariableCollection.replace(
       ORION_API_KEY_ENV_VAR,

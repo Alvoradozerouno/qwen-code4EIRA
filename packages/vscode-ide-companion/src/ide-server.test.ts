@@ -154,7 +154,7 @@ describe('IDEServer', () => {
     expect(replaceMock).toHaveBeenNthCalledWith(
       5,
       'OPENAI_MODEL',
-      'qwen/qwen-2.5-coder-32b',
+      'qwen/qwen3-235b-a22b:free',
     );
 
     const port = getPortFromMock(replaceMock);

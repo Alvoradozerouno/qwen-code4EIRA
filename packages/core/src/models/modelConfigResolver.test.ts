@@ -162,13 +162,13 @@ describe('modelConfigResolver', () => {
         const result = resolveModelConfig({
           authType: AuthType.QWEN_OAUTH,
           cli: {
-            model: 'qwen/qwen-2.5-coder-32b',
+            model: 'qwen/qwen3-235b-a22b:free',
           },
           settings: {},
           env: {},
         });
 
-        expect(result.config.model).toBe('qwen/qwen-2.5-coder-32b');
+        expect(result.config.model).toBe('qwen/qwen3-235b-a22b:free');
         expect(result.sources['model'].kind).toBe('cli');
       });
 
