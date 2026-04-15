@@ -9,3 +9,4 @@
 export * from './deterministic-gate.js';
 export * from './audit-trail.js';
 export * from './eira-monitor.js';
+export * from './consistency-gate.js';

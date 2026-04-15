@@ -199,7 +199,7 @@
         "genesis.orion.apiKey": {
           "type": "string",
           "default": "",
-          "markdownDescription": "**OpenRouter API Key** for Orion Kernel requests.\n\nGet a free key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).\n\nOnce set, Orion Kernel automatically uses `qwen/qwen3-235b-a22b:free` — the strongest free model.",
+          "markdownDescription": "**OpenRouter API Key** for Orion Kernel requests.\n\nGet a free key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).\n\nAll models — including Claude, GPT-4.1, Gemini and Llama — are accessible via a **single OpenRouter key**. No separate provider accounts needed.",
           "order": 1
         },
         "genesis.orion.model": {
@@ -209,20 +209,44 @@
             "qwen/qwen3-235b-a22b:free",
             "qwen/qwen3-32b:free",
             "qwen/qwen3-30b-a3b:free",
+            "qwen/qwen3-235b-a22b",
             "qwen/qwen-2.5-coder-32b",
             "qwen/qwen-2.5-coder-72b-instruct",
-            "qwen/qwen-2.5-plus"
+            "qwen/qwen-2.5-plus",
+            "anthropic/claude-sonnet-4-5",
+            "anthropic/claude-opus-4-5",
+            "openai/gpt-4.1",
+            "openai/gpt-4.1-mini",
+            "google/gemini-2.5-pro",
+            "google/gemini-2.5-flash",
+            "meta-llama/llama-3.1-405b-instruct",
+            "deepseek/deepseek-r1"
           ],
           "enumDescriptions": [
-            "Qwen3 235B MoE – strongest free model (recommended)",
-            "Qwen3 32B Dense – free, great for code",
-            "Qwen3 30B MoE – fast and free",
-            "Qwen2.5-Coder 32B – specialized coding model (paid)",
-            "Qwen2.5-Coder 72B Instruct (paid)",
-            "Qwen2.5-Plus general purpose (paid)"
+            "🆓 Qwen3 235B MoE – strongest free model (recommended for free tier)",
+            "🆓 Qwen3 32B Dense – free, great for code",
+            "🆓 Qwen3 30B MoE – fast and free",
+            "💎 Qwen3 235B – no rate limits, full speed (paid)",
+            "💎 Qwen2.5-Coder 32B – optimised for code (paid)",
+            "💎 Qwen2.5-Coder 72B Instruct (paid)",
+            "💎 Qwen2.5-Plus general purpose (paid)",
+            "🏆 Claude Sonnet 4.5 – top SWE-bench performance (paid via OpenRouter)",
+            "🏆 Claude Opus 4.5 – maximum reasoning depth (paid via OpenRouter)",
+            "🏆 GPT-4.1 – OpenAI flagship, very strong for code (paid via OpenRouter)",
+            "💎 GPT-4.1 Mini – fast and cheap, good for drafts (paid via OpenRouter)",
+            "🏆 Gemini 2.5 Pro – 1M token context window (paid via OpenRouter)",
+            "💎 Gemini 2.5 Flash – extremely fast and cheap (paid via OpenRouter)",
+            "💎 Llama 3.1 405B – best open-source, cost-effective for batch tasks (paid via OpenRouter)",
+            "💎 DeepSeek R1 – leading reasoning model, best price-performance ratio (paid via OpenRouter)"
           ],
-          "markdownDescription": "**Orion Kernel model** via OpenRouter.\n\nAll `:free` models are available at no cost with a free API key.",
+          "markdownDescription": "**Orion Kernel model** via OpenRouter.\n\n- 🆓 `:free` models — no cost, rate-limited\n- 💎 Paid models — requires credits on [openrouter.ai](https://openrouter.ai)\n- 🏆 Top frontier models (Claude, GPT-4.1, Gemini) — best performance\n\nAll accessible with the **same single OpenRouter API key**.",
           "order": 2
+        },
+        "genesis.orion.selfConsistency": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Self-Consistency Probing** — derive real K confidence from response stability.\n\nWhen enabled, the K-Gate runs 3 parallel probes and measures response agreement to compute a genuine confidence score instead of synthetic estimates.\n\n⚠️ Uses 3× tokens per gated decision. Recommended only for high-stakes actions.",
+          "order": 6
         },
         "genesis.orion.kThreshold": {
           "type": "number",

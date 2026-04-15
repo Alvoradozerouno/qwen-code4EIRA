@@ -26,7 +26,10 @@ import {
   setProofChainValid,
   recordSystemEvent,
   initAuditTrail,
+  configureConsistencyGate,
+  readGateConfigFromSettings,
 } from './orion/index.js';
+import { getProjectMemory } from '@qwen-code/qwen-code-core/src/services/projectMemoryService.js';
 
 const CLI_IDE_COMPANION_IDENTIFIER =
   'Alvoradozerouno.genesis-copilot-orion-kernel';
@@ -126,6 +129,21 @@ export async function activate(context: vscode.ExtensionContext) {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (workspaceRoot) {
     initAuditTrail(workspaceRoot);
+
+    // ── Persistent Project Memory ───────────────────────────────────────
+    // Load cross-session memory for this project.
+    // The memory service is a singleton — getProjectMemory() returns the
+    // same instance for the lifetime of this workspace session.
+    try {
+      const memory = getProjectMemory(workspaceRoot);
+      log(
+        `ORION Memory loaded — ${memory.snapshot().sessions.length} past sessions, ` +
+          `${memory.listFacts().length} stored facts`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log(`ORION Memory: failed to initialise — ${msg}`);
+    }
   }
   initEiraMonitor(context);
 
@@ -136,6 +154,37 @@ export async function activate(context: vscode.ExtensionContext) {
   updateEiraModel(initialModel, 0.9);
   setProofChainValid(true);
   recordSystemEvent('ORION_KERNEL_ACTIVATED');
+
+  // ── Consistency Gate ─────────────────────────────────────────────────
+  // Configure the K-gate self-consistency prober from current settings.
+  const gateConfig = readGateConfigFromSettings();
+  if (gateConfig) {
+    configureConsistencyGate(gateConfig);
+    log(
+      `ORION Consistency Gate configured — model: ${gateConfig.model}, ` +
+        `self-consistency: ${gateConfig.enabled ? 'ENABLED' : 'disabled'}`,
+    );
+  } else {
+    log(
+      'ORION Consistency Gate: no API key configured — using synthetic evidence',
+    );
+  }
+
+  // Re-configure gate whenever settings change (model switch, key update, toggle)
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('genesis.orion')) {
+        const updatedConfig = readGateConfigFromSettings();
+        if (updatedConfig) {
+          configureConsistencyGate(updatedConfig);
+          updateEiraModel(updatedConfig.model, 0.9);
+          recordSystemEvent('ORION_SETTINGS_UPDATED');
+          log(`ORION Settings updated — model: ${updatedConfig.model}`);
+        }
+      }
+    }),
+  );
+
   log('ORION Kernel activated — K_THRESHOLD=3.2, E.I.R.A. monitoring active');
   // ── End ORION Kernel Bootstrap ─────────────────────────────────────────
 
