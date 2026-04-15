@@ -269,8 +269,14 @@ export function buildOpenAIGenerateFn(
         throw new Error(`HTTP ${response.status}`);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data = (await response.json()) as any;
+      interface OpenAIChoice {
+        message?: { content?: string };
+        text?: string;
+      }
+      interface OpenAIResponse {
+        choices?: OpenAIChoice[];
+      }
+      const data = (await response.json()) as OpenAIResponse;
       const text: string =
         data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '';
       return text;

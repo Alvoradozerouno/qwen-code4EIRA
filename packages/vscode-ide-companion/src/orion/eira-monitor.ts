@@ -8,10 +8,10 @@
  * Computes and displays the Phi (Φ) system integrity score in the VS Code
  * status bar. Updates in real-time as the extension operates.
  *
- * Status bar format: ⊘ ORION  Φ=0.87  K=4.1  ACTIVE
+ * Status bar format: ⊘ ORION  Φ=0.87  K=4.1  💚v=0.73  ACTIVE
  *
  * Phi formula:
- *   Φ = proofChainValid×0.4 + modelConfidence×0.3 + auditComplete×0.3
+ *   Φ = proofChainValid×0.35 + modelConfidence×0.25 + auditComplete×0.25 + vitality×0.15
  */
 
 import * as vscode from 'vscode';

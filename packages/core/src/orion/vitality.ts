@@ -63,7 +63,7 @@ const VITALITY_BOOST_PROOF = 0.02;
 const VITALITY_FLOOR = 0.05;
 const VITALITY_CEIL = 1.0;
 
-/** Default vitality for a fresh instance — matches Python initial value */
+/** Default vitality for a fresh instance — matches Python orion_kernel.py initial state (0.62) */
 const VITALITY_DEFAULT = 0.62;
 
 // ── Stage mapping ──────────────────────────────────────────────────────────
