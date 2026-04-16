@@ -17,7 +17,7 @@ import type {
   EmbedContentParameters,
   EmbedContentResponse,
 } from '@google/genai';
-import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
+import { type ContentGeneratorConfig, AuthType } from '../core/contentGenerator.js';
 import { DEFAULT_DASHSCOPE_BASE_URL } from '../core/openaiContentGenerator/constants.js';
 import { createDebugLogger } from '../utils/debugLogger.js';
 
@@ -47,8 +47,13 @@ export class QwenContentGenerator extends OpenAIContentGenerator {
     super(contentGeneratorConfig, cliConfig, dashscopeProvider);
     this.qwenClient = qwenClient;
     this.sharedManager = SharedTokenManager.getInstance();
-    this.staticApiKey = contentGeneratorConfig?.apiKey;
-    this.staticBaseUrl = contentGeneratorConfig?.baseUrl;
+
+    // Only use static credentials for non-OAuth auth types.
+    // When authType is QWEN_OAUTH the token must always be obtained (and
+    // refreshed) through the SharedTokenManager / qwenClient flow.
+    const isOAuth = contentGeneratorConfig?.authType === AuthType.QWEN_OAUTH;
+    this.staticApiKey = isOAuth ? undefined : contentGeneratorConfig?.apiKey;
+    this.staticBaseUrl = isOAuth ? undefined : contentGeneratorConfig?.baseUrl;
 
     // Set default base URL, will be updated dynamically
     if (contentGeneratorConfig?.baseUrl && contentGeneratorConfig?.apiKey) {
