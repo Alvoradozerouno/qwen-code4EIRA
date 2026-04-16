@@ -67,13 +67,15 @@ Example uses:
     properties: {
       tasks: {
         type: 'array',
-        description: 'The list of tasks to run. Order within the array does not matter; dependency order controls execution.',
+        description:
+          'The list of tasks to run. Order within the array does not matter; dependency order controls execution.',
         items: {
           type: 'object',
           properties: {
             name: {
               type: 'string',
-              description: 'Unique task identifier within this run. Referenced by other tasks in depends_on.',
+              description:
+                'Unique task identifier within this run. Referenced by other tasks in depends_on.',
             },
             prompt: {
               type: 'string',
@@ -81,12 +83,14 @@ Example uses:
             },
             subagent_type: {
               type: 'string',
-              description: 'Subagent type name. Common values: "task" (default general-purpose), "explore" (read-only research). Can also be a user-defined agent name from .qwen/agents/.',
+              description:
+                'Subagent type name. Common values: "task" (default general-purpose), "explore" (read-only research). Can also be a user-defined agent name from .qwen/agents/.',
             },
             depends_on: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Names of tasks that must complete successfully before this task starts.',
+              description:
+                'Names of tasks that must complete successfully before this task starts.',
             },
             timeout_seconds: {
               type: 'number',
@@ -104,7 +108,8 @@ Example uses:
       },
       max_concurrency: {
         type: 'number',
-        description: 'Maximum number of simultaneously running subagents (default: 4, max: 8).',
+        description:
+          'Maximum number of simultaneously running subagents (default: 4, max: 8).',
       },
     },
     required: ['tasks'],
@@ -122,7 +127,7 @@ export class ParallelAgentTool extends BaseDeclarativeTool<
       ParallelAgentTool.Name,
       'ParallelAgent',
       parallelAgentSchema.description ?? '',
-      Kind.Agent,
+      Kind.Other,
       parallelAgentSchema.parametersJsonSchema,
       /* isOutputMarkdown */ true,
       /* canUpdateOutput */ true,
@@ -162,29 +167,37 @@ class ParallelAgentInvocation extends BaseToolInvocation<
     const subagentManager = this.config.getSubagentManager();
     const maxConcurrency = Math.min(this.params.max_concurrency ?? 4, 8);
 
-    updateOutput?.(`⊘ ORION ParallelOrchestrator: launching ${this.params.tasks.length} task(s) (concurrency=${maxConcurrency})…`);
+    updateOutput?.(
+      `⊘ ORION ParallelOrchestrator: launching ${this.params.tasks.length} task(s) (concurrency=${maxConcurrency})…`,
+    );
 
     const taskDefs = this.params.tasks.map((t) => ({
       name: t.name,
       prompt: t.prompt,
       agentName: t.subagent_type,
       dependsOn: t.depends_on,
-      timeoutMs: t.timeout_seconds != null ? t.timeout_seconds * 1000 : undefined,
+      timeoutMs:
+        t.timeout_seconds != null ? t.timeout_seconds * 1000 : undefined,
       maxRetries: t.max_retries,
     }));
 
     try {
-      const run = await subagentManager.runParallelSubagents(taskDefs, this.config, {
-        orchestratorOptions: { maxConcurrency },
-        signal,
-      });
+      const run = await subagentManager.runParallelSubagents(
+        taskDefs,
+        this.config,
+        {
+          orchestratorOptions: { maxConcurrency },
+          signal,
+        },
+      );
 
       // Tick ORION VitalityEngine
       const vitality = getVitalityEngine();
       vitality.tick({
         positive: run.allSucceeded,
         proofAdded: run.allSucceeded,
-        pressure: run.failedTasks.length > 0 ? 0.15 * run.failedTasks.length : 0,
+        pressure:
+          run.failedTasks.length > 0 ? 0.15 * run.failedTasks.length : 0,
       });
 
       const summary = run.summary();
@@ -197,7 +210,7 @@ class ParallelAgentInvocation extends BaseToolInvocation<
       for (const [name, result] of run.results) {
         taskResults[name] =
           result.status === 'done'
-            ? (result.value as string | undefined) ?? '(completed)'
+            ? ((result.value as string | undefined) ?? '(completed)')
             : result.status === 'skipped'
               ? `[SKIPPED — dependency failed]`
               : `[FAILED: ${result.error ?? 'unknown error'}]`;
