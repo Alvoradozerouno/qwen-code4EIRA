@@ -20,7 +20,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { createReadStream, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -32,7 +32,9 @@ async function main() {
     : path.resolve(process.cwd(), DEFAULT_PATH);
 
   if (!existsSync(auditFilePath)) {
-    console.log(`⊘ ORION verify-chain: no audit trail at ${auditFilePath} — trivially intact.`);
+    console.log(
+      `⊘ ORION verify-chain: no audit trail at ${auditFilePath} — trivially intact.`,
+    );
     process.exit(0);
   }
 
@@ -40,7 +42,9 @@ async function main() {
   const lines = content.trim().split('\n').filter(Boolean);
 
   if (lines.length === 0) {
-    console.log(`⊘ ORION verify-chain: empty audit trail at ${auditFilePath} — trivially intact.`);
+    console.log(
+      `⊘ ORION verify-chain: empty audit trail at ${auditFilePath} — trivially intact.`,
+    );
     process.exit(0);
   }
 
@@ -53,14 +57,18 @@ async function main() {
     try {
       entry = JSON.parse(line);
     } catch {
-      console.error(`✗ ORION verify-chain: TAMPERED — line ${i + 1} is not valid JSON.`);
+      console.error(
+        `✗ ORION verify-chain: TAMPERED — line ${i + 1} is not valid JSON.`,
+      );
       console.error(`  File: ${auditFilePath}`);
       process.exit(1);
     }
 
     const { sha256, ...rest } = entry;
     if (!sha256 || typeof sha256 !== 'string') {
-      console.error(`✗ ORION verify-chain: TAMPERED — line ${i + 1} missing sha256 field.`);
+      console.error(
+        `✗ ORION verify-chain: TAMPERED — line ${i + 1} missing sha256 field.`,
+      );
       process.exit(1);
     }
 
@@ -70,7 +78,9 @@ async function main() {
       .digest('hex');
 
     if (expected !== sha256) {
-      console.error(`✗ ORION verify-chain: TAMPERED at entry ${i + 1} (${entry.type ?? 'unknown'}).`);
+      console.error(
+        `✗ ORION verify-chain: TAMPERED at entry ${i + 1} (${entry.type ?? 'unknown'}).`,
+      );
       console.error(`  Expected: ${expected}`);
       console.error(`  Found:    ${sha256}`);
       console.error(`  File: ${auditFilePath}`);
