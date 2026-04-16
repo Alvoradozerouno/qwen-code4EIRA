@@ -78,6 +78,13 @@ Never clear the audit trail.
 7. **`SubagentManager.runParallelSubagents()`** — `ParallelOrchestrator` is now wired into the real subagent dispatch layer. Multi-step coding tasks can run dependency-ordered concurrent subagents with a single call.
 8. **`scripts/orion-eval.ts`** — Real eval harness. Run `npx tsx scripts/orion-eval.ts --compare`. Benchmark table: K, Phi, decision, µs timing per coding scenario vs LLM baseline.
 
+### 2026-04-16 (Session 3)
+
+9. **`parallel_agent` LLM Tool** — `packages/core/src/tools/parallel-agent.ts`. The LLM can now call `parallel_agent` to dispatch up to 16 subagents with dependency ordering. Registered in `config.ts` as a core tool. VitalityEngine ticks on run completion.
+10. **ORION VitalityEngine ticks in `AgentTool`** — every subagent completion ticks the kernel: success → `positive+proofAdded`, failure → `pressure=0.15`. Kernel state now reflects real agent workload.
+11. **`npm run orion:verify-chain`** — `scripts/orion-verify-chain.js`. Standalone Node.js tool: verifies SHA-256 chain integrity without VS Code. Reports exact tampered entry with expected vs found hash. Exit 0 = intact, Exit 1 = tampered.
+12. **`npm run orion:eval` / `orion:eval:compare`** — npm shortcuts to the eval harness added to root `package.json`.
+
 ---
 
 ## 5a. Benchmark Results (2026-04-15, first run)
@@ -105,11 +112,14 @@ Run: `npx tsx scripts/orion-eval.ts --compare`
 
 ## 6. What Is Still Missing (for Global Leading Agent)
 
-| Gap                                              | Priority | Notes                                                                                                        |
-| ------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------ |
-| **SWE-bench / HumanEval integration**            | HIGH     | `orion-eval.ts` covers gate decisions; need actual end-to-end coding task success rate on public benchmarks. |
-| **`runParallelSubagents()` exposed as LLM tool** | MEDIUM   | Implemented in SubagentManager; not yet callable by the LLM via a tool call.                                 |
-| **Real self-consistency enabled by default**     | MEDIUM   | Still requires manual `genesis.orion.apiKey` + `selfConsistency=true` to activate.                           |
+| Gap | Priority | Notes |
+|---|---|---|
+| **SWE-bench / HumanEval integration** | HIGH | `orion-eval.ts` covers gate decisions; need actual end-to-end coding task success rate on public benchmarks. |
+| **`parallel_agent` in EXCLUDED_TOOLS_FOR_SUBAGENTS** | MEDIUM | Prevent recursive parallel_agent calls from inside subagents. |
+| **Real self-consistency enabled by default** | MEDIUM | Still requires manual `genesis.orion.apiKey` + `selfConsistency=true`. Consider auto-detect when key is present. |
+| **parallel_agent confirmation UI** | LOW | Currently shows generic `ask` dialog; a richer fan-out preview UI would help users understand what's launching. |
+
+✅ **DONE (this branch):** parallel_agent LLM tool, runParallelSubagents(), verifyChain on boot, selfConsistency warning, vitality ticks in AgentTool, verify-chain CLI, eval harness.
 
 ---
 

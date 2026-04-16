@@ -38,6 +38,7 @@ import { createDebugLogger } from '../utils/debugLogger.js';
 import { PermissionMode } from '../hooks/types.js';
 import type { StopHookOutput } from '../hooks/types.js';
 import { ApprovalMode } from '../config/config.js';
+import { getVitalityEngine } from '../orion/vitality.js';
 
 export interface AgentParams {
   description: string;
@@ -869,6 +870,13 @@ class AgentToolInvocation extends BaseToolInvocation<AgentParams, ToolResult> {
           const terminateMode = subagent.getTerminateMode();
           const success = terminateMode === AgentTerminateMode.GOAL;
           const executionSummary = subagent.getExecutionSummary();
+
+          // ORION VitalityEngine: tick on every subagent completion
+          getVitalityEngine().tick({
+            positive: success,
+            proofAdded: success,
+            pressure: success ? 0 : 0.15,
+          });
 
           if (signal?.aborted) {
             this.updateDisplay(
