@@ -312,27 +312,36 @@ export async function createContentGenerator(
     );
     baseGenerator = createOpenAIContentGenerator(generatorConfig, config);
   } else if (authType === AuthType.QWEN_OAUTH) {
-    const { getQwenOAuthClient: getQwenOauthClient } = await import(
-      '../qwen/qwenOAuth2.js'
-    );
-    const { QwenContentGenerator } = await import(
-      '../qwen/qwenContentGenerator.js'
-    );
+    // When a static API key + base URL are provided (e.g. OpenRouter), skip
+    // the Qwen OAuth client entirely and use the standard OpenAI-compatible path.
+    if (generatorConfig.apiKey && generatorConfig.baseUrl) {
+      const { createOpenAIContentGenerator } = await import(
+        './openaiContentGenerator/index.js'
+      );
+      baseGenerator = createOpenAIContentGenerator(generatorConfig, config);
+    } else {
+      const { getQwenOAuthClient: getQwenOauthClient } = await import(
+        '../qwen/qwenOAuth2.js'
+      );
+      const { QwenContentGenerator } = await import(
+        '../qwen/qwenContentGenerator.js'
+      );
 
-    try {
-      const qwenClient = await getQwenOauthClient(
-        config,
-        isInitialAuth ? { requireCachedCredentials: true } : undefined,
-      );
-      baseGenerator = new QwenContentGenerator(
-        qwenClient,
-        generatorConfig,
-        config,
-      );
-    } catch (error) {
-      throw new Error(
-        `${error instanceof Error ? error.message : String(error)}`,
-      );
+      try {
+        const qwenClient = await getQwenOauthClient(
+          config,
+          isInitialAuth ? { requireCachedCredentials: true } : undefined,
+        );
+        baseGenerator = new QwenContentGenerator(
+          qwenClient,
+          generatorConfig,
+          config,
+        );
+      } catch (error) {
+        throw new Error(
+          `${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
   } else if (authType === AuthType.USE_ANTHROPIC) {
     const { createAnthropicContentGenerator } = await import(

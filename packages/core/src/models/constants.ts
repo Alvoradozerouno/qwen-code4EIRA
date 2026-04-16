@@ -83,9 +83,9 @@ export const AUTH_ENV_MAPPINGS = {
     model: ['GOOGLE_MODEL'],
   },
   'qwen-oauth': {
-    apiKey: [],
-    baseUrl: [],
-    model: [],
+    apiKey: ['GENESIS_ORION_API_KEY', 'OPENROUTER_API_KEY', 'OPENAI_API_KEY'],
+    baseUrl: ['OPENAI_BASE_URL'],
+    model: ['OPENAI_MODEL'],
   },
 } as const satisfies Record<AuthType, AuthEnvMapping>;
 
@@ -97,14 +97,118 @@ export const DEFAULT_MODELS = {
 /**
  * Hard-coded Qwen OAuth models that are always available.
  * These cannot be overridden by user configuration.
+ *
+ * Organised in tiers:
+ *   Tier 0 — Free Qwen3 models (no cost, rate-limited)
+ *   Tier 1 — Paid Qwen models (best Qwen quality, low-medium cost)
+ *   Tier 2 — Top frontier models via OpenRouter (Claude, GPT, Gemini, Llama)
+ *             All accessible with the same OpenRouter API key — no separate
+ *             provider accounts needed.
  */
 export const QWEN_OAUTH_MODELS: ModelConfig[] = [
+  // ── Tier 0: Free Qwen3 ───────────────────────────────────────────────────
   {
-    id: 'coder-model',
-    name: 'coder-model',
+    id: 'qwen/qwen3-235b-a22b:free',
+    name: 'Orion Ultra Free (Qwen3 235B)',
+    description: 'Stärkstes kostenloses Qwen3-MoE-Modell via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'qwen/qwen3-32b:free',
+    name: 'Orion 32B Free (Qwen3)',
+    description: 'Qwen3 32B Dense – kostenlos via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'qwen/qwen3-30b-a3b:free',
+    name: 'Orion Fast Free (Qwen3 30B)',
+    description: 'Qwen3 30B MoE – schnell und kostenlos via OpenRouter',
+    capabilities: { vision: false },
+  },
+
+  // ── Tier 1: Paid Qwen ────────────────────────────────────────────────────
+  {
+    id: 'qwen/qwen3-235b-a22b',
+    name: 'Orion Ultra (Qwen3 235B)',
     description:
-      'Qwen 3.6 Plus — efficient hybrid model with leading coding performance',
+      'Qwen3 235B MoE – keine Rate-Limits, volle Geschwindigkeit via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'qwen/qwen-2.5-coder-32b',
+    name: 'Orion Coder 32B (Qwen2.5)',
+    description: 'Qwen2.5-Coder 32B – optimiert für Code via OpenRouter',
     capabilities: { vision: true },
+  },
+  {
+    id: 'qwen/qwen-2.5-coder-72b-instruct',
+    name: 'Orion Coder Ultra 72B (Qwen2.5)',
+    description: 'Qwen2.5-Coder 72B Instruct via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'qwen/qwen-2.5-plus',
+    name: 'Orion Plus (Qwen2.5)',
+    description: 'Qwen2.5-Plus – Allzweck-Modell via OpenRouter',
+    capabilities: { vision: true },
+  },
+
+  // ── Tier 2: Top Frontier Models via OpenRouter ───────────────────────────
+  // Same single OpenRouter API key — no separate provider accounts needed.
+  {
+    id: 'anthropic/claude-sonnet-4-5',
+    name: 'Claude Sonnet 4.5 (Anthropic)',
+    description:
+      'Anthropics stärkstes Alltags-Modell – führend auf SWE-Bench via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'anthropic/claude-opus-4-5',
+    name: 'Claude Opus 4.5 (Anthropic)',
+    description:
+      'Anthropics leistungsstärkstes Modell – maximale Reasoning-Tiefe via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'openai/gpt-4.1',
+    name: 'GPT-4.1 (OpenAI)',
+    description:
+      'OpenAIs aktuelles Flagship-Modell – sehr stark für Code via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'openai/gpt-4.1-mini',
+    name: 'GPT-4.1 Mini (OpenAI)',
+    description:
+      'GPT-4.1 Mini – schnell und günstig, gut für Drafts via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'google/gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro (Google)',
+    description: 'Googles stärkstes Modell mit 1M-Token-Kontext via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'google/gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash (Google)',
+    description:
+      'Gemini 2.5 Flash – extrem schnell und kostengünstig via OpenRouter',
+    capabilities: { vision: true },
+  },
+  {
+    id: 'meta-llama/llama-3.1-405b-instruct',
+    name: 'Llama 3.1 405B (Meta)',
+    description:
+      'Metas stärkstes Open-Source-Modell – kosteneffizient für Batch-Tasks via OpenRouter',
+    capabilities: { vision: false },
+  },
+  {
+    id: 'deepseek/deepseek-r1',
+    name: 'DeepSeek R1 (DeepSeek)',
+    description:
+      'Führendes chinesisches Reasoning-Modell – stärkstes Preis-Leistungs-Verhältnis via OpenRouter',
+    capabilities: { vision: false },
   },
 ];
 

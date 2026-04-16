@@ -16,7 +16,7 @@ describe('ModelRegistry', () => {
 
       const qwenModels = registry.getModelsForAuthType(AuthType.QWEN_OAUTH);
       expect(qwenModels.length).toBe(QWEN_OAUTH_MODELS.length);
-      expect(qwenModels[0].id).toBe('coder-model');
+      expect(qwenModels[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
     it('should initialize with empty config', () => {
@@ -187,12 +187,12 @@ describe('ModelRegistry', () => {
   });
 
   describe('getDefaultModelForAuthType', () => {
-    it('should return coder-model for qwen-oauth', () => {
+    it('should return default Orion model for qwen-oauth', () => {
       const registry = new ModelRegistry();
       const defaultModel = registry.getDefaultModelForAuthType(
         AuthType.QWEN_OAUTH,
       );
-      expect(defaultModel?.id).toBe('coder-model');
+      expect(defaultModel?.id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
     it('should return first model for other authTypes', () => {
@@ -224,8 +224,11 @@ describe('ModelRegistry', () => {
   describe('default base URLs', () => {
     it('should apply default dashscope URL for qwen-oauth', () => {
       const registry = new ModelRegistry();
-      const model = registry.getModel(AuthType.QWEN_OAUTH, 'coder-model');
-      expect(model?.baseUrl).toBe('DYNAMIC_QWEN_OAUTH_BASE_URL');
+      const model = registry.getModel(
+        AuthType.QWEN_OAUTH,
+        'qwen/qwen3-235b-a22b:free',
+      );
+      expect(model?.baseUrl).toBe('https://openrouter.ai/api/v1');
     });
 
     it('should apply default openai URL when not specified', () => {
@@ -422,7 +425,7 @@ describe('ModelRegistry', () => {
         QWEN_OAUTH_MODELS.length,
       );
       expect(
-        registry.getModel(AuthType.QWEN_OAUTH, 'coder-model'),
+        registry.getModel(AuthType.QWEN_OAUTH, 'qwen/qwen3-235b-a22b:free'),
       ).toBeDefined();
     });
 

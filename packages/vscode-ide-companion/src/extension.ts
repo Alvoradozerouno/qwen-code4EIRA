@@ -20,8 +20,20 @@ import { registerChatViewProviders } from './webview/providers/chatViewRegistrat
 import { registerNewCommands } from './commands/index.js';
 import { ReadonlyFileSystemProvider } from './services/readonlyFileSystemProvider.js';
 import { isWindows } from './utils/platform.js';
+import {
+  initEiraMonitor,
+  updateEiraModel,
+  setProofChainValid,
+  recordSystemEvent,
+  initAuditTrail,
+  verifyChain,
+  configureConsistencyGate,
+  readGateConfigFromSettings,
+} from './orion/index.js';
+import { getProjectMemory } from '@qwen-code/qwen-code-core/src/services/projectMemoryService.js';
 
-const CLI_IDE_COMPANION_IDENTIFIER = 'qwenlm.qwen-code-vscode-ide-companion';
+const CLI_IDE_COMPANION_IDENTIFIER =
+  'Alvoradozerouno.genesis-copilot-orion-kernel';
 const INFO_MESSAGE_SHOWN_KEY = 'qwenCodeInfoMessageShown';
 export const DIFF_SCHEME = 'qwen-diff';
 
@@ -90,7 +102,7 @@ async function checkForUpdates(
 
     if (latestVersion && semver.gt(latestVersion, currentVersion)) {
       const selection = await vscode.window.showInformationMessage(
-        `A new version (${latestVersion}) of the Qwen Code Companion extension is available.`,
+        `A new version (${latestVersion}) of the Genesis Copilot Orion Kernel extension is available.`,
         'Update to latest version',
       );
       if (selection === 'Update to latest version') {
@@ -108,9 +120,82 @@ async function checkForUpdates(
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  logger = vscode.window.createOutputChannel('Qwen Code Companion');
+  logger = vscode.window.createOutputChannel('Genesis Copilot Orion Kernel');
   log = createLogger(context, logger);
   log('Extension activated');
+
+  // ── ORION Kernel Bootstrap ──────────────────────────────────────────────
+  // Initialize E.I.R.A. (Electronic Intelligence Reasoning Arbiter) monitor
+  // and audit trail. The audit trail persists in <workspace>/.orion/audit-trail.jsonl
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (workspaceRoot) {
+    initAuditTrail(workspaceRoot);
+
+    // ── Persistent Project Memory ───────────────────────────────────────
+    // Load cross-session memory for this project.
+    // The memory service is a singleton — getProjectMemory() returns the
+    // same instance for the lifetime of this workspace session.
+    try {
+      const memory = getProjectMemory(workspaceRoot);
+      log(
+        `ORION Memory loaded — ${memory.snapshot().sessions.length} past sessions, ` +
+          `${memory.listFacts().length} stored facts`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log(`ORION Memory: failed to initialise — ${msg}`);
+    }
+  }
+  initEiraMonitor(context);
+
+  // Read initial model from settings and update EIRA
+  const config = vscode.workspace.getConfiguration('genesis.orion');
+  const initialModel =
+    config.get<string>('model') ?? 'qwen/qwen3-235b-a22b:free';
+  updateEiraModel(initialModel, 0.9);
+  // Verify audit chain integrity at startup — sets proof chain status before
+  // any new decisions are recorded. Runs synchronously (reads local disk only).
+  const chainIntact = verifyChain();
+  setProofChainValid(chainIntact);
+  if (!chainIntact) {
+    log(
+      'ORION WARNING: audit chain integrity check FAILED — chain may have been tampered with.',
+    );
+  }
+  recordSystemEvent('ORION_KERNEL_ACTIVATED');
+
+  // ── Consistency Gate ─────────────────────────────────────────────────
+  // Configure the K-gate self-consistency prober from current settings.
+  const gateConfig = readGateConfigFromSettings();
+  if (gateConfig) {
+    configureConsistencyGate(gateConfig);
+    log(
+      `ORION Consistency Gate configured — model: ${gateConfig.model}, ` +
+        `self-consistency: ${gateConfig.enabled ? 'ENABLED' : 'disabled'}`,
+    );
+  } else {
+    log(
+      'ORION Consistency Gate: no API key configured — using synthetic evidence',
+    );
+  }
+
+  // Re-configure gate whenever settings change (model switch, key update, toggle)
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('genesis.orion')) {
+        const updatedConfig = readGateConfigFromSettings();
+        if (updatedConfig) {
+          configureConsistencyGate(updatedConfig);
+          updateEiraModel(updatedConfig.model, 0.9);
+          recordSystemEvent('ORION_SETTINGS_UPDATED');
+          log(`ORION Settings updated — model: ${updatedConfig.model}`);
+        }
+      }
+    }),
+  );
+
+  log('ORION Kernel activated — K_THRESHOLD=3.2, E.I.R.A. monitoring active');
+  // ── End ORION Kernel Bootstrap ─────────────────────────────────────────
 
   checkForUpdates(context, log);
 
@@ -289,7 +374,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (!context.globalState.get(INFO_MESSAGE_SHOWN_KEY) && infoMessageEnabled) {
     void vscode.window.showInformationMessage(
-      'Qwen Code Companion extension successfully installed.',
+      'Genesis Copilot Orion Kernel extension successfully installed.',
     );
     context.globalState.update(INFO_MESSAGE_SHOWN_KEY, true);
   }
@@ -311,7 +396,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
           vscode.window.showInformationMessage(
-            'No folder open. Please open a folder to run Qwen Code.',
+            'No folder open. Please open a folder to run Orion Kernel.',
           );
           return;
         }
@@ -321,7 +406,7 @@ export async function activate(context: vscode.ExtensionContext) {
           selectedFolder = workspaceFolders[0];
         } else {
           selectedFolder = await vscode.window.showWorkspaceFolderPick({
-            placeHolder: 'Select a folder to run Qwen Code in',
+            placeHolder: 'Select a folder to run Orion Kernel in',
           });
         }
 
@@ -335,7 +420,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const execPath = process.execPath;
 
           const terminalOptions: vscode.TerminalOptions = {
-            name: `Qwen Code (${selectedFolder.name})`,
+            name: `Orion Kernel (${selectedFolder.name})`,
             cwd: selectedFolder.uri.fsPath,
             location,
           };
@@ -374,10 +459,28 @@ export async function activate(context: vscode.ExtensionContext) {
       );
       await vscode.window.showTextDocument(noticePath);
     }),
+    // Export EU AI Act audit report
+    vscode.commands.registerCommand('qwen-code.exportAuditReport', async () => {
+      const { exportAuditReport } = await import('./orion/index.js');
+      const report = exportAuditReport();
+      const uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file('orion-audit-report.json'),
+        filters: { JSON: ['json'] },
+        title: 'Export ORION EU AI Act Audit Report',
+      });
+      if (uri) {
+        const fs = await import('fs');
+        fs.writeFileSync(uri.fsPath, JSON.stringify(report, null, 2), 'utf-8');
+        vscode.window.showInformationMessage(
+          `✅ Audit report exported: ${report.totalEntries} entries, chain ${report.chainIntegrity ? 'VALID' : 'INVALID'}`,
+        );
+      }
+    }),
   );
 }
 
 export async function deactivate(): Promise<void> {
+  recordSystemEvent('ORION_KERNEL_DEACTIVATED');
   log('Extension deactivated');
   try {
     if (ideServer) {

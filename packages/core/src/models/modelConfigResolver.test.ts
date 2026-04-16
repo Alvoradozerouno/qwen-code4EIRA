@@ -153,21 +153,22 @@ describe('modelConfigResolver', () => {
         });
 
         expect(result.config.model).toBe(DEFAULT_QWEN_MODEL);
-        expect(result.config.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
-        expect(result.sources['apiKey'].kind).toBe('computed');
+        expect(result.config.apiKey).toBeUndefined();
+        expect(result.config.baseUrl).toBe('https://openrouter.ai/api/v1');
+        expect(result.sources['baseUrl'].kind).toBe('default');
       });
 
-      it('allows coder-model for Qwen OAuth', () => {
+      it('allows Orion default model for Qwen OAuth', () => {
         const result = resolveModelConfig({
           authType: AuthType.QWEN_OAUTH,
           cli: {
-            model: 'coder-model',
+            model: 'qwen/qwen3-235b-a22b:free',
           },
           settings: {},
           env: {},
         });
 
-        expect(result.config.model).toBe('coder-model');
+        expect(result.config.model).toBe('qwen/qwen3-235b-a22b:free');
         expect(result.sources['model'].kind).toBe('cli');
       });
 

@@ -104,17 +104,17 @@ export function AuthDialog(): React.JSX.Element {
   const mainItems = [
     {
       key: AuthType.QWEN_OAUTH,
-      title: t('Qwen OAuth'),
-      label: t('Qwen OAuth'),
-      description: t('Free \u00B7 100 requests/day \u00B7 Ending 2026-04-15'),
+      title: t('Orion Kernel'),
+      label: t('Orion Kernel'),
+      description: t('OpenRouter-powered Orion Kernel'),
       value: AuthType.QWEN_OAUTH as MainOption,
     },
     {
       key: 'CODING_PLAN',
-      title: t('Alibaba Cloud Coding Plan'),
-      label: t('Alibaba Cloud Coding Plan'),
+      title: t('Orion Kernel Coding Plan'),
+      label: t('Orion Kernel Coding Plan'),
       description: t(
-        'Paid \u00B7 Up to 6,000 requests/5 hrs \u00B7 All Alibaba Cloud Coding Plan Models',
+        'Paid \u00B7 Up to 6,000 requests/5 hrs \u00B7 Orion Kernel Coding Models',
       ),
       value: 'CODING_PLAN' as MainOption,
     },
@@ -127,35 +127,27 @@ export function AuthDialog(): React.JSX.Element {
     },
   ];
 
-  // Region selection entries (shown after selecting Alibaba Cloud Coding Plan)
+  // Region selection entries (shown after selecting Orion Kernel Coding Plan)
   const regionItems = [
     {
       key: 'china',
-      title: '阿里云百炼 (aliyun.com)',
-      label: '阿里云百炼 (aliyun.com)',
+      title: 'OpenRouter Documentation',
+      label: 'OpenRouter Documentation',
       description: (
-        <Link
-          url="https://help.aliyun.com/zh/model-studio/coding-plan"
-          fallback={false}
-        >
-          <Text color={theme.text.secondary}>
-            https://help.aliyun.com/zh/model-studio/coding-plan
-          </Text>
+        <Link url="https://openrouter.ai/docs" fallback={false}>
+          <Text color={theme.text.secondary}>https://openrouter.ai/docs</Text>
         </Link>
       ),
       value: CodingPlanRegion.CHINA,
     },
     {
       key: 'global',
-      title: 'Alibaba Cloud (alibabacloud.com)',
-      label: 'Alibaba Cloud (alibabacloud.com)',
+      title: 'OpenRouter Console',
+      label: 'OpenRouter Console',
       description: (
-        <Link
-          url="https://www.alibabacloud.com/help/en/model-studio/coding-plan"
-          fallback={false}
-        >
+        <Link url="https://openrouter.ai/settings/keys" fallback={false}>
           <Text color={theme.text.secondary}>
-            https://www.alibabacloud.com/help/en/model-studio/coding-plan
+            https://openrouter.ai/settings/keys
           </Text>
         </Link>
       ),
@@ -213,9 +205,9 @@ export function AuthDialog(): React.JSX.Element {
   const apiKeyTypeItems = [
     {
       key: 'ALIBABA_STANDARD_API_KEY',
-      title: t('Alibaba Cloud ModelStudio Standard API Key'),
-      label: t('Alibaba Cloud ModelStudio Standard API Key'),
-      description: t('Quick setup for Model Studio (China/International)'),
+      title: t('Orion Kernel Standard API Key'),
+      label: t('Orion Kernel Standard API Key'),
+      description: t('Quick setup for OpenRouter'),
       value: 'ALIBABA_STANDARD_API_KEY' as ApiKeyOption,
     },
     {
@@ -289,7 +281,7 @@ export function AuthDialog(): React.JSX.Element {
       return;
     }
 
-    // For Qwen OAuth, proceed directly
+    // For Orion Kernel, proceed directly
     await onAuthSelect(value);
   };
 

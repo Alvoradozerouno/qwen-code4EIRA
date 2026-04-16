@@ -120,7 +120,7 @@ describe('activate', () => {
     } as vscode.Extension<unknown>);
     await activate(context);
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      'Qwen Code Companion extension successfully installed.',
+      'Genesis Copilot Orion Kernel extension successfully installed.',
     );
   });
 
@@ -157,14 +157,14 @@ describe('activate', () => {
   it('should launch the Qwen Code when the user clicks the button', async () => {
     const showInformationMessageMock = vi
       .mocked(vscode.window.showInformationMessage)
-      .mockResolvedValue('Run Qwen Code' as never);
+      .mockResolvedValue('Run Orion Kernel' as never);
     vi.mocked(context.globalState.get).mockReturnValue(undefined);
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       packageJSON: { version: '1.1.0' },
     } as vscode.Extension<unknown>);
     await activate(context);
     expect(showInformationMessageMock).toHaveBeenCalledWith(
-      'Qwen Code Companion extension successfully installed.',
+      'Genesis Copilot Orion Kernel extension successfully installed.',
     );
   });
 
@@ -197,7 +197,7 @@ describe('activate', () => {
       await activate(context);
 
       expect(showInformationMessageMock).toHaveBeenCalledWith(
-        'A new version (1.2.0) of the Qwen Code Companion extension is available.',
+        'A new version (1.2.0) of the Genesis Copilot Orion Kernel extension is available.',
         'Update to latest version',
       );
     });
@@ -296,7 +296,7 @@ describe('activate', () => {
 
       expect(executeCommandMock).toHaveBeenCalledWith(
         'workbench.extensions.installExtension',
-        'qwenlm.qwen-code-vscode-ide-companion',
+        'Alvoradozerouno.genesis-copilot-orion-kernel',
       );
     });
 

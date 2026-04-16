@@ -28,7 +28,10 @@ import type {
 } from '../agents/runtime/agent-types.js';
 import { SubagentError, SubagentErrorCode } from './types.js';
 import { SubagentValidator } from './validation.js';
-import { AgentHeadless } from '../agents/runtime/agent-headless.js';
+import {
+  AgentHeadless,
+  ContextState,
+} from '../agents/runtime/agent-headless.js';
 import type {
   AgentEventEmitter,
   AgentHooks,
@@ -45,6 +48,11 @@ import { buildAgentContentGeneratorConfig } from '../models/content-generator-co
 import { createDebugLogger } from '../utils/debugLogger.js';
 import { normalizeContent } from '../utils/textUtils.js';
 import { parseSubagentModelSelection } from './model-selection.js';
+import {
+  ParallelOrchestrator,
+  type OrchestratorOptions,
+  type OrchestratorRun,
+} from '../agents/orchestrator/parallel-orchestrator.js';
 
 const debugLogger = createDebugLogger('SUBAGENT_MANAGER');
 import { BuiltinAgentRegistry } from './builtin-agents.js';
@@ -963,6 +971,98 @@ export class SubagentManager {
     }
 
     return false; // Name is already in use
+  }
+
+  /**
+   * Run multiple subagents in parallel using the ORION ParallelOrchestrator.
+   *
+   * Tasks in the same dependency wave execute concurrently (up to maxConcurrency).
+   * Tasks that declare `dependsOn` wait for their dependencies to complete first.
+   *
+   * Each task entry:
+   *   - name:       unique identifier (used for dependency references)
+   *   - prompt:     task instruction passed to the subagent
+   *   - agentName:  subagent type name (must be registered or a builtin)
+   *   - dependsOn:  optional list of task names that must complete first
+   *   - timeoutMs:  optional per-task timeout (default: 120 000 ms)
+   *   - maxRetries: optional retry count on failure (default: 0)
+   *
+   * @returns OrchestratorRun with all task results and timing.
+   */
+  async runParallelSubagents(
+    tasks: Array<{
+      name: string;
+      prompt: string;
+      agentName: string;
+      dependsOn?: string[];
+      timeoutMs?: number;
+      maxRetries?: number;
+    }>,
+    runtimeContext: Config,
+    options?: {
+      orchestratorOptions?: OrchestratorOptions;
+      signal?: AbortSignal;
+      eventEmitter?: AgentEventEmitter;
+    },
+  ): Promise<OrchestratorRun> {
+    const orchestrator = new ParallelOrchestrator(
+      options?.orchestratorOptions ?? { maxConcurrency: 4 },
+    );
+
+    const orchestratorTasks = await Promise.all(
+      tasks.map(async (taskDef) => {
+        // Resolve subagent config once (outside the executor so it is not
+        // repeated on retries unless the config is mutable).
+        const subagentConfig = await this.resolveSubagentConfig(
+          taskDef.agentName,
+        );
+
+        return {
+          name: taskDef.name,
+          description: `${taskDef.agentName}: ${taskDef.prompt.slice(0, 80)}`,
+          prompt: taskDef.prompt,
+          dependsOn: taskDef.dependsOn,
+          timeoutMs: taskDef.timeoutMs,
+          maxRetries: taskDef.maxRetries,
+          execute: async (prompt: string): Promise<string> => {
+            const agent = await this.createAgentHeadless(
+              subagentConfig,
+              runtimeContext,
+              { eventEmitter: options?.eventEmitter },
+            );
+            const ctx = new ContextState();
+            ctx.set('task_prompt', prompt);
+            await agent.execute(ctx, options?.signal);
+            return agent.getFinalText() ?? '';
+          },
+        };
+      }),
+    );
+
+    return orchestrator.run(orchestratorTasks);
+  }
+
+  /**
+   * Resolve a SubagentConfig by agent name, checking builtins and user-defined agents.
+   */
+  private async resolveSubagentConfig(
+    agentName: string,
+  ): Promise<SubagentConfig> {
+    // Try builtin first
+    const builtin = BuiltinAgentRegistry.getBuiltinAgent(agentName);
+    if (builtin) {
+      return builtin;
+    }
+    // Try user-defined (all levels)
+    const userDefined = await this.loadSubagent(agentName);
+    if (userDefined) {
+      return userDefined;
+    }
+    throw new SubagentError(
+      `Unknown subagent: "${agentName}". Register it as a builtin or create .qwen/agents/${agentName}.md`,
+      SubagentErrorCode.NOT_FOUND,
+      agentName,
+    );
   }
 }
 

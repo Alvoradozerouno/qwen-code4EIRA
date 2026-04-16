@@ -17,7 +17,7 @@ import type {
   EmbedContentParameters,
   EmbedContentResponse,
 } from '@google/genai';
-import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
+import { type ContentGeneratorConfig, AuthType } from '../core/contentGenerator.js';
 import { DEFAULT_DASHSCOPE_BASE_URL } from '../core/openaiContentGenerator/constants.js';
 import { createDebugLogger } from '../utils/debugLogger.js';
 
@@ -29,6 +29,8 @@ export class QwenContentGenerator extends OpenAIContentGenerator {
   private qwenClient: IQwenOAuth2Client;
   private sharedManager: SharedTokenManager;
   private currentToken?: string;
+  private readonly staticApiKey?: string;
+  private readonly staticBaseUrl?: string;
 
   constructor(
     qwenClient: IQwenOAuth2Client,
@@ -45,6 +47,13 @@ export class QwenContentGenerator extends OpenAIContentGenerator {
     super(contentGeneratorConfig, cliConfig, dashscopeProvider);
     this.qwenClient = qwenClient;
     this.sharedManager = SharedTokenManager.getInstance();
+
+    // Only use static credentials for non-OAuth auth types.
+    // When authType is QWEN_OAUTH the token must always be obtained (and
+    // refreshed) through the SharedTokenManager / qwenClient flow.
+    const isOAuth = contentGeneratorConfig?.authType === AuthType.QWEN_OAUTH;
+    this.staticApiKey = isOAuth ? undefined : contentGeneratorConfig?.apiKey;
+    this.staticBaseUrl = isOAuth ? undefined : contentGeneratorConfig?.baseUrl;
 
     // Set default base URL, will be updated dynamically
     if (contentGeneratorConfig?.baseUrl && contentGeneratorConfig?.apiKey) {
@@ -85,6 +94,13 @@ export class QwenContentGenerator extends OpenAIContentGenerator {
    * Get valid token and endpoint using the shared token manager
    */
   private async getValidToken(): Promise<{ token: string; endpoint: string }> {
+    if (this.staticApiKey && this.staticBaseUrl) {
+      return {
+        token: this.staticApiKey,
+        endpoint: this.staticBaseUrl,
+      };
+    }
+
     try {
       // Use SharedTokenManager for consistent token/endpoint pairing and automatic refresh
       const credentials = await this.sharedManager.getValidCredentials(
@@ -139,7 +155,10 @@ export class QwenContentGenerator extends OpenAIContentGenerator {
     try {
       return await attemptOperation();
     } catch (error) {
-      if (this.isAuthError(error)) {
+      if (
+        this.isAuthError(error) &&
+        !(this.staticApiKey && this.staticBaseUrl)
+      ) {
         // Use SharedTokenManager to properly refresh and persist the token
         // This ensures the refreshed token is saved to oauth_creds.json
         await this.sharedManager.getValidCredentials(this.qwenClient, true);

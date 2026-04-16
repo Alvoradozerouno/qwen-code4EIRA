@@ -429,7 +429,7 @@ describe('Server Config (config.ts)', () => {
 
       const mockContentConfig: ContentGeneratorConfig = {
         authType: AuthType.QWEN_OAUTH,
-        model: 'coder-model',
+        model: 'qwen/qwen3-235b-a22b:free',
         apiKey: 'QWEN_OAUTH_DYNAMIC_TOKEN',
         baseUrl: DEFAULT_DASHSCOPE_BASE_URL,
         timeout: 60000,
@@ -459,9 +459,12 @@ describe('Server Config (config.ts)', () => {
       // Spy after initial refresh to ensure model switch does not re-trigger refreshAuth.
       const refreshSpy = vi.spyOn(config, 'refreshAuth');
 
-      await config.switchModel(AuthType.QWEN_OAUTH, 'coder-model');
+      await config.switchModel(
+        AuthType.QWEN_OAUTH,
+        'qwen/qwen3-235b-a22b:free',
+      );
 
-      expect(config.getModel()).toBe('coder-model');
+      expect(config.getModel()).toBe('qwen/qwen3-235b-a22b:free');
       expect(refreshSpy).not.toHaveBeenCalled();
       // Called once during initial refreshAuth + once during handleModelChange diffing.
       expect(

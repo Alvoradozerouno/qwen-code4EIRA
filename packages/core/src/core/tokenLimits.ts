@@ -48,6 +48,9 @@ export function normalize(model: string): string {
   // keep final path segment (strip provider prefixes), handle pipe/colon
   s = s.replace(/^.*\//, '');
   s = s.split('|').pop() ?? s;
+  // Strip OpenRouter quality/routing tier suffixes (:free, :nitro, :extended, :floor)
+  // BEFORE the colon-based variant split so the model name is preserved.
+  s = s.replace(/:(?:free|nitro|extended|floor)$/, '');
   s = s.split(':').pop() ?? s;
 
   // collapse whitespace to single hyphen
@@ -117,9 +120,15 @@ const PATTERNS: Array<[RegExp, TokenCount]> = [
   [/^coder-model$/, LIMITS['1m']],
   // Commercial API models (256K context)
   [/^qwen3-max/, LIMITS['256k']],
+  // OpenRouter free-tier Qwen3 MoE models (131K context window)
+  [/^qwen3-235b/, LIMITS['128k']], // qwen3-235b-a22b (OpenRouter: qwen/qwen3-235b-a22b:free)
+  [/^qwen3-30b/, LIMITS['128k']], // qwen3-30b-a3b   (OpenRouter: qwen/qwen3-30b-a3b:free)
+  [/^qwen3-32b/, LIMITS['128k']], // qwen3-32b        (OpenRouter: qwen/qwen3-32b:free)
+  [/^qwen3-14b/, LIMITS['128k']], // qwen3-14b
+  [/^qwen3-8b/, LIMITS['128k']], //  qwen3-8b
   // Open-source Qwen3 variants: 256K native
   [/^qwen3-coder-/, LIMITS['256k']],
-  // Qwen fallback (VL, turbo, plus, 2.5, etc.): 128K
+  // Qwen fallback (VL, turbo, plus, 2.5, etc.): 256K
   [/^qwen/, LIMITS['256k']],
 
   // -------------------

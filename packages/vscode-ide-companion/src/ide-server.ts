@@ -40,6 +40,13 @@ class CORSError extends Error {
 const MCP_SESSION_ID_HEADER = 'mcp-session-id';
 const IDE_SERVER_PORT_ENV_VAR = 'QWEN_CODE_IDE_SERVER_PORT';
 const IDE_WORKSPACE_PATH_ENV_VAR = 'QWEN_CODE_IDE_WORKSPACE_PATH';
+const ORION_API_KEY_ENV_VAR = 'GENESIS_ORION_API_KEY';
+const OPENAI_API_KEY_ENV_VAR = 'OPENAI_API_KEY';
+const OPENAI_BASE_URL_ENV_VAR = 'OPENAI_BASE_URL';
+const OPENAI_MODEL_ENV_VAR = 'OPENAI_MODEL';
+const QWEN_DEFAULT_AUTH_TYPE_ENV_VAR = 'QWEN_DEFAULT_AUTH_TYPE';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+const ORION_DEFAULT_MODEL = 'qwen/qwen3-235b-a22b:free';
 const QWEN_DIR = '.qwen';
 const IDE_DIR = 'ide';
 
@@ -83,6 +90,32 @@ async function writePortAndWorkspace({
     IDE_WORKSPACE_PATH_ENV_VAR,
     workspacePath,
   );
+  context.environmentVariableCollection.replace(
+    QWEN_DEFAULT_AUTH_TYPE_ENV_VAR,
+    'openai',
+  );
+  context.environmentVariableCollection.replace(
+    OPENAI_BASE_URL_ENV_VAR,
+    OPENROUTER_BASE_URL,
+  );
+  const cfg = vscode.workspace.getConfiguration();
+  const orionModel =
+    cfg.get<string>('genesis.orion.model')?.trim() || ORION_DEFAULT_MODEL;
+  context.environmentVariableCollection.replace(
+    OPENAI_MODEL_ENV_VAR,
+    orionModel,
+  );
+  const orionApiKey = cfg.get<string>('genesis.orion.apiKey')?.trim();
+  if (orionApiKey) {
+    context.environmentVariableCollection.replace(
+      ORION_API_KEY_ENV_VAR,
+      orionApiKey,
+    );
+    context.environmentVariableCollection.replace(
+      OPENAI_API_KEY_ENV_VAR,
+      orionApiKey,
+    );
+  }
 
   const ideInfo = detectIdeFromEnv();
   const content = JSON.stringify({

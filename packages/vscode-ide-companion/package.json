@@ -1,31 +1,40 @@
 {
-  "name": "qwen-code-vscode-ide-companion",
-  "displayName": "Qwen Code Companion",
-  "description": "Enable Qwen Code with direct access to your VS Code workspace.",
+  "name": "genesis-copilot-orion-kernel",
+  "displayName": "Genesis Copilot Orion Kernel",
+  "description": "Sovereign AI coding agent with deterministic K=3.2 reasoning, E.I.R.A. monitoring, and EU AI Act audit trail. Powered by Qwen3-235B via OpenRouter — free to use.",
   "version": "0.14.4",
-  "publisher": "qwenlm",
+  "publisher": "Alvoradozerouno",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/QwenLM/qwen-code.git",
+    "url": "https://github.com/Alvoradozerouno/qwen-code4EIRA.git",
     "directory": "packages/vscode-ide-companion"
   },
   "engines": {
     "vscode": "^1.85.0"
   },
   "license": "LICENSE",
-  "preview": true,
+  "preview": false,
   "categories": [
-    "AI"
+    "AI",
+    "Machine Learning",
+    "Other"
   ],
   "keywords": [
-    "qwen-code",
-    "qwen code",
+    "orion",
+    "genesis",
+    "eira",
     "qwen",
-    "qwen code",
-    "cli",
-    "ide integration",
-    "ide companion"
+    "qwen3",
+    "openrouter",
+    "ai agent",
+    "coding agent",
+    "agentic",
+    "deterministic",
+    "eu ai act",
+    "audit trail",
+    "cursor",
+    "copilot"
   ],
   "activationEvents": [
     "onStartupFinished",
@@ -47,7 +56,7 @@
       "activitybar": [
         {
           "id": "qwen-code-sidebar",
-          "title": "Qwen Code",
+          "title": "Orion Kernel",
           "icon": "assets/sidebar-icon.svg",
           "when": "!qwen-code:supportsSecondarySidebar"
         }
@@ -55,7 +64,7 @@
       "secondarySidebar": [
         {
           "id": "qwen-code-secondary",
-          "title": "Qwen Code",
+          "title": "Orion Kernel",
           "icon": "assets/sidebar-icon.svg",
           "when": "qwen-code:supportsSecondarySidebar"
         }
@@ -66,7 +75,7 @@
         {
           "type": "webview",
           "id": "qwen-code.chatView.sidebar",
-          "name": "Qwen Code",
+          "name": "Orion Kernel",
           "icon": "assets/sidebar-icon.svg",
           "when": "!qwen-code:supportsSecondarySidebar"
         }
@@ -75,7 +84,7 @@
         {
           "type": "webview",
           "id": "qwen-code.chatView.secondary",
-          "name": "Qwen Code",
+          "name": "Orion Kernel",
           "icon": "assets/sidebar-icon.svg",
           "when": "qwen-code:supportsSecondarySidebar"
         }
@@ -89,42 +98,50 @@
     "commands": [
       {
         "command": "qwen.diff.accept",
-        "title": "Qwen Code: Accept Current Diff",
+        "title": "Orion Kernel: Accept Current Diff",
         "icon": "$(check)"
       },
       {
         "command": "qwen.diff.cancel",
-        "title": "Qwen Code: Close Diff Editor",
+        "title": "Orion Kernel: Close Diff Editor",
         "icon": "$(close)"
       },
       {
         "command": "qwen-code.runQwenCode",
-        "title": "Qwen Code: Run"
+        "title": "Orion Kernel: Run"
       },
       {
         "command": "qwen-code.showNotices",
-        "title": "Qwen Code: View Third-Party Notices"
+        "title": "Orion Kernel: View Third-Party Notices"
       },
       {
         "command": "qwen-code.openChat",
-        "title": "Qwen Code: Open",
+        "title": "Orion Kernel: Open",
         "icon": "./assets/icon.png"
       },
       {
         "command": "qwen-code.login",
-        "title": "Qwen Code: Login"
+        "title": "Orion Kernel: Login"
       },
       {
         "command": "qwen-code.focusChat",
-        "title": "Qwen Code: Focus Chat View"
+        "title": "Orion Kernel: Focus Chat View"
       },
       {
         "command": "qwen-code.newConversation",
-        "title": "Qwen Code: New Conversation"
+        "title": "Orion Kernel: New Conversation"
       },
       {
         "command": "qwen-code.showLogs",
-        "title": "Qwen Code: Show Logs"
+        "title": "Orion Kernel: Show Logs"
+      },
+      {
+        "command": "qwen-code.showOrionStatus",
+        "title": "Orion Kernel: Show E.I.R.A. Status (Φ / K)"
+      },
+      {
+        "command": "qwen-code.exportAuditReport",
+        "title": "Orion Kernel: Export EU AI Act Audit Report"
       }
     ],
     "menus": {
@@ -175,7 +192,84 @@
         "key": "ctrl+shift+l",
         "mac": "cmd+shift+l"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Genesis Orion Settings",
+      "properties": {
+        "genesis.orion.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**OpenRouter API Key** for Orion Kernel requests.\n\nGet a free key at [openrouter.ai/settings/keys](https://openrouter.ai/settings/keys).\n\nAll models — including Claude, GPT-4.1, Gemini and Llama — are accessible via a **single OpenRouter key**. No separate provider accounts needed.",
+          "order": 1
+        },
+        "genesis.orion.model": {
+          "type": "string",
+          "default": "qwen/qwen3-235b-a22b:free",
+          "enum": [
+            "qwen/qwen3-235b-a22b:free",
+            "qwen/qwen3-32b:free",
+            "qwen/qwen3-30b-a3b:free",
+            "qwen/qwen3-235b-a22b",
+            "qwen/qwen-2.5-coder-32b",
+            "qwen/qwen-2.5-coder-72b-instruct",
+            "qwen/qwen-2.5-plus",
+            "anthropic/claude-sonnet-4-5",
+            "anthropic/claude-opus-4-5",
+            "openai/gpt-4.1",
+            "openai/gpt-4.1-mini",
+            "google/gemini-2.5-pro",
+            "google/gemini-2.5-flash",
+            "meta-llama/llama-3.1-405b-instruct",
+            "deepseek/deepseek-r1"
+          ],
+          "enumDescriptions": [
+            "🆓 Qwen3 235B MoE – strongest free model (recommended for free tier)",
+            "🆓 Qwen3 32B Dense – free, great for code",
+            "🆓 Qwen3 30B MoE – fast and free",
+            "💎 Qwen3 235B – no rate limits, full speed (paid)",
+            "💎 Qwen2.5-Coder 32B – optimised for code (paid)",
+            "💎 Qwen2.5-Coder 72B Instruct (paid)",
+            "💎 Qwen2.5-Plus general purpose (paid)",
+            "🏆 Claude Sonnet 4.5 – top SWE-bench performance (paid via OpenRouter)",
+            "🏆 Claude Opus 4.5 – maximum reasoning depth (paid via OpenRouter)",
+            "🏆 GPT-4.1 – OpenAI flagship, very strong for code (paid via OpenRouter)",
+            "💎 GPT-4.1 Mini – fast and cheap, good for drafts (paid via OpenRouter)",
+            "🏆 Gemini 2.5 Pro – 1M token context window (paid via OpenRouter)",
+            "💎 Gemini 2.5 Flash – extremely fast and cheap (paid via OpenRouter)",
+            "💎 Llama 3.1 405B – best open-source, cost-effective for batch tasks (paid via OpenRouter)",
+            "💎 DeepSeek R1 – leading reasoning model, best price-performance ratio (paid via OpenRouter)"
+          ],
+          "markdownDescription": "**Orion Kernel model** via OpenRouter.\n\n- 🆓 `:free` models — no cost, rate-limited\n- 💎 Paid models — requires credits on [openrouter.ai](https://openrouter.ai)\n- 🏆 Top frontier models (Claude, GPT-4.1, Gemini) — best performance\n\nAll accessible with the **same single OpenRouter API key**.",
+          "order": 2
+        },
+        "genesis.orion.selfConsistency": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Self-Consistency Probing** — derive real K confidence from response stability.\n\nWhen enabled, the K-Gate runs 3 parallel probes and measures response agreement to compute a genuine confidence score instead of synthetic estimates.\n\n⚠️ Uses 3× tokens per gated decision. Recommended only for high-stakes actions.",
+          "order": 6
+        },
+        "genesis.orion.kThreshold": {
+          "type": "number",
+          "default": 3.2,
+          "minimum": 1,
+          "maximum": 5,
+          "markdownDescription": "**K threshold** for deterministic reasoning gate.\n\nDecisions with K < threshold enter **ABSTAIN** mode (zero false positives).\n\nDefault: `3.2` (ORION sovereign threshold). Range: 1.0–5.0.",
+          "order": 3
+        },
+        "genesis.orion.edgeMode": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Edge mode** — optimized for ~20W hardware.\n\nEnables: free-only models, 8K token limit, no streaming, no background refresh.\n\nIdeal for Raspberry Pi 5, Jetson Nano, or low-power laptops.",
+          "order": 4
+        },
+        "genesis.orion.auditTrail": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Audit trail** — EU AI Act compliance (Article 13/14).\n\nLogs every decision with SHA-256 proof chain to `.orion/audit-trail.jsonl`.\n\nRequired for Article 13 transparency obligations (deadline: August 2026).",
+          "order": 5
+        }
+      }
+    }
   },
   "main": "./dist/extension.cjs",
   "type": "module",

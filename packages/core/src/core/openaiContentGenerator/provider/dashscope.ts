@@ -30,6 +30,9 @@ export class DashScopeOpenAICompatibleProvider extends DefaultOpenAICompatiblePr
   ): boolean {
     const { authType, baseUrl } = contentGeneratorConfig;
 
+    // Never use DashScope headers when routing through OpenRouter
+    if (baseUrl?.includes('openrouter.ai')) return false;
+
     if (authType === AuthType.QWEN_OAUTH) return true;
     if (!baseUrl) return true;
 

@@ -80,18 +80,11 @@ The escalation logic lives in `geminiChat.ts`, placed **outside** the main retry
 2. Truncation is not an error — it's a successful response that was cut short
 3. Errors from the escalated stream should propagate directly to the caller, not be caught by retry logic
 
-### Escalation steps (geminiChat.ts)
+### Escalation implementation
 
-```
-1. Stream completes successfully (lastError === null)
-2. Last chunk has finishReason === MAX_TOKENS
-3. Guard checks pass:
-   - maxTokensEscalated === false (prevent infinite escalation)
-   - hasUserMaxTokensOverride === false (respect user intent)
-4. Pop the partial model response from chat history
-5. Yield RETRY event → UI discards partial output
-6. Re-send the same request with maxOutputTokens: 64K
-```
+Real implementation: [`packages/core/src/core/geminiChat.ts`](../../../packages/core/src/core/geminiChat.ts) — escalation block outside the main retry loop (lines ~500–530).
+
+Guard conditions before escalating: `maxTokensEscalated === false` and `hasUserMaxTokensOverride === false`. On escalation the partial model response is popped from history, a RETRY event is yielded (UI discards partial output), and the request is re-sent with `maxOutputTokens: ESCALATED_MAX_TOKENS` (64K).
 
 ### State cleanup on RETRY (turn.ts)
 
@@ -104,7 +97,7 @@ When the `Turn` class receives a RETRY event, it clears accumulated state to pre
 
 ## Constants
 
-Defined in `tokenLimits.ts`:
+Defined in [`packages/core/src/core/tokenLimits.ts`](../../../packages/core/src/core/tokenLimits.ts):
 
 | Constant                    | Value  | Purpose                                                 |
 | --------------------------- | ------ | ------------------------------------------------------- |

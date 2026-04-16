@@ -43,6 +43,22 @@ describe('normalize', () => {
     expect(normalize('qwen2.5-quantized')).toBe('qwen2.5');
   });
 
+  it('should strip OpenRouter quality/routing tier suffixes before colon split', () => {
+    expect(normalize('qwen/qwen3-235b-a22b:free')).toBe('qwen3-235b-a22b');
+    expect(normalize('qwen/qwen3-30b-a3b:free')).toBe('qwen3-30b-a3b');
+    expect(normalize('qwen/qwen3-32b:free')).toBe('qwen3-32b');
+    expect(normalize('meta-llama/llama-4-maverick:free')).toBe(
+      'llama-4-maverick',
+    );
+    expect(normalize('mistralai/mistral-small-3.1-24b-instruct:nitro')).toBe(
+      'mistral-small-3.1-24b-instruct',
+    );
+    expect(normalize('deepseek/deepseek-r1:extended')).toBe('deepseek-r1');
+    expect(normalize('anthropic/claude-3.5-haiku:floor')).toBe(
+      'claude-3.5-haiku',
+    );
+  });
+
   it('should handle a combination of normalization rules', () => {
     expect(normalize('  Google/GEMINI-2.5-PRO:gemini-2.5-pro-20250605  ')).toBe(
       'gemini-2.5-pro',
@@ -156,6 +172,24 @@ describe('tokenLimit', () => {
       expect(tokenLimit('qwen3-vl-plus')).toBe(262144);
       expect(tokenLimit('qwen3-coder-7b')).toBe(262144);
       expect(tokenLimit('qwen3-coder-next')).toBe(262144);
+    });
+
+    it('should return 128K for OpenRouter free-tier Qwen3 MoE models', () => {
+      // plain IDs
+      expect(tokenLimit('qwen3-235b-a22b')).toBe(131072);
+      expect(tokenLimit('qwen3-30b-a3b')).toBe(131072);
+      expect(tokenLimit('qwen3-32b')).toBe(131072);
+      // With OpenRouter provider prefix and :free suffix (normalize strips both)
+      expect(tokenLimit('qwen/qwen3-235b-a22b:free')).toBe(131072);
+      expect(tokenLimit('qwen/qwen3-30b-a3b:free')).toBe(131072);
+      expect(tokenLimit('qwen/qwen3-32b:free')).toBe(131072);
+    });
+
+    it('should return 256K for OpenRouter Qwen2.5-coder models (via Qwen fallback)', () => {
+      // After normalize, "qwen/qwen-2.5-coder-32b" becomes "qwen-2.5-coder-32b"
+      // which is caught by the general /^qwen/ → 256K fallback
+      expect(tokenLimit('qwen/qwen-2.5-coder-32b')).toBe(262144);
+      expect(tokenLimit('qwen/qwen-2.5-coder-72b-instruct')).toBe(262144);
     });
 
     it('should return 1M for studio latest models', () => {
