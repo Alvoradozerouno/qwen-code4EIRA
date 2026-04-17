@@ -79,11 +79,38 @@ export interface TaskResult<TResult = string> {
 /** Map of task name → result, passed as dependency context to downstream tasks */
 export type TaskResultMap = Map<string, TaskResult>;
 
+/**
+ * Inference optimisation profiles for the orchestrator.
+ *
+ * - `balanced`    — Default. maxConcurrency=4, timeout=120 s. Good all-around.
+ * - `throughput`  — Maximises parallel work: maxConcurrency=8, timeout=240 s.
+ *                   Best for batch / background pipelines where latency is not critical.
+ * - `latency`     — Minimises wait time: maxConcurrency=2, timeout=60 s.
+ *                   Best for interactive, user-facing calls where fast first-response matters.
+ */
+export type InferenceOptimizationMode = 'balanced' | 'throughput' | 'latency';
+
+/** Pre-set concurrency + timeout values for each optimisation mode. */
+const INFERENCE_OPTIMIZATION_PRESETS: Record<
+  InferenceOptimizationMode,
+  { maxConcurrency: number; defaultTimeoutMs: number }
+> = {
+  balanced: { maxConcurrency: 4, defaultTimeoutMs: 120_000 },
+  throughput: { maxConcurrency: 8, defaultTimeoutMs: 240_000 },
+  latency: { maxConcurrency: 2, defaultTimeoutMs: 60_000 },
+};
+
 export interface OrchestratorOptions {
   /** Maximum number of tasks allowed to run concurrently (default: 4) */
   maxConcurrency?: number;
   /** Default task timeout if not set per-task (default: 120_000 ms) */
   defaultTimeoutMs?: number;
+  /**
+   * Inference optimisation mode (default: 'balanced').
+   * When set, this pre-configures maxConcurrency and defaultTimeoutMs.
+   * Explicit maxConcurrency / defaultTimeoutMs values override the preset.
+   */
+  inferenceOptimization?: InferenceOptimizationMode;
   /** Called after each task completes (for logging / UI updates) */
   onTaskDone?: (result: TaskResult) => void;
 }
@@ -282,8 +309,12 @@ export class ParallelOrchestrator {
   private readonly onTaskDone?: (result: TaskResult) => void;
 
   constructor(opts: OrchestratorOptions = {}) {
-    this.semaphore = new Semaphore(opts.maxConcurrency ?? 4);
-    this.defaultTimeoutMs = opts.defaultTimeoutMs ?? 120_000;
+    const preset =
+      INFERENCE_OPTIMIZATION_PRESETS[opts.inferenceOptimization ?? 'balanced'];
+    this.semaphore = new Semaphore(
+      opts.maxConcurrency ?? preset.maxConcurrency,
+    );
+    this.defaultTimeoutMs = opts.defaultTimeoutMs ?? preset.defaultTimeoutMs;
     this.onTaskDone = opts.onTaskDone;
   }
 
