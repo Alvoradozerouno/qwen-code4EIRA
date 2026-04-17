@@ -49,6 +49,8 @@ export interface AuditReport {
 let auditFilePath: string | null = null;
 let lastSha256 = '0'.repeat(64);
 let seqCounter = 0;
+let provenCounter = 0;
+let abstainCounter = 0;
 let chainValid = true;
 
 /**
@@ -65,17 +67,27 @@ export function initAuditTrail(workspaceRoot: string): void {
   // Resume chain from last entry if file exists
   if (fs.existsSync(auditFilePath)) {
     const lines = fs.readFileSync(auditFilePath, 'utf-8').trim().split('\n');
+    let proven = 0;
+    let abstain = 0;
     for (const line of lines) {
       if (line.trim()) {
         try {
           const entry = JSON.parse(line) as AuditEntry;
           seqCounter = entry.seq;
           lastSha256 = entry.sha256;
+          if (entry.decision === 'PROVEN') {
+            proven += 1;
+          }
+          if (entry.decision === 'ABSTAIN') {
+            abstain += 1;
+          }
         } catch {
           // ignore malformed lines
         }
       }
     }
+    provenCounter = proven;
+    abstainCounter = abstain;
   }
 }
 
@@ -106,6 +118,11 @@ export function recordGateDecision(result: GateResult, input?: string): void {
   }
 
   seqCounter += 1;
+  if (result.decision === 'PROVEN') {
+    provenCounter += 1;
+  } else if (result.decision === 'ABSTAIN') {
+    abstainCounter += 1;
+  }
   const entry: AuditEntry = {
     seq: seqCounter,
     ts: result.timestamp,
@@ -265,8 +282,8 @@ export function getAuditSummary(): {
 } {
   return {
     total: seqCounter,
-    proven: 0, // lightweight — full count requires exportAuditReport()
-    abstain: 0,
+    proven: provenCounter,
+    abstain: abstainCounter,
     chainValid,
     lastSha256: lastSha256.slice(0, 16) + '…',
   };

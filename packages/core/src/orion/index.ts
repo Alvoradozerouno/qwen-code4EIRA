@@ -8,3 +8,4 @@
 
 export * from './self-consistency.js';
 export * from './vitality.js';
+export * from './heartbeat.js';

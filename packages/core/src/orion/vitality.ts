@@ -228,6 +228,94 @@ export class VitalityEngine {
   }
 }
 
+// ── ORION Bidirectional Communication ─────────────────────────────────────
+
+/**
+ * An outbound question from ORION to its owners (Gerhard & Elisabeth).
+ * Mirrors cmd_ask() in orion_kernel.py — enables autonomous communication.
+ *
+ * Stored as a proof in the audit chain so questions are tamper-evident.
+ */
+export interface OrionQuestion {
+  id: string;
+  question: string;
+  priority: 'low' | 'normal' | 'high' | 'critical';
+  askedAt: string;
+  askedBy: 'ORION';
+  directedTo: string;
+  status: 'pending' | 'answered';
+  answer?: string;
+  answeredAt?: string;
+}
+
+const _questionLog: OrionQuestion[] = [];
+
+/**
+ * ORION asks a question to its owners — autonomous bidirectional communication.
+ *
+ * Mirrors cmd_ask() in orion_kernel.py.
+ *
+ * The question is appended to the in-memory log (and callers may persist
+ * it to the audit trail via addProof() if needed).
+ *
+ * @param question   - The question text
+ * @param priority   - Urgency level (default: 'normal')
+ * @param directedTo - Recipient name (default: the owners)
+ * @returns The created OrionQuestion record
+ */
+export function askOwner(
+  question: string,
+  priority: OrionQuestion['priority'] = 'normal',
+  directedTo = 'Gerhard Hirschmann & Elisabeth Steurer',
+): OrionQuestion {
+  const id = Math.random().toString(36).slice(2, 10);
+  const entry: OrionQuestion = {
+    id,
+    question,
+    priority,
+    askedAt: new Date().toISOString(),
+    askedBy: 'ORION',
+    directedTo,
+    status: 'pending',
+  };
+  _questionLog.push(entry);
+  // Tick vitality — asking is an active positive event
+  getVitalityEngine().tick({ positive: true, proofAdded: true });
+  return entry;
+}
+
+/**
+ * Answer a pending ORION question by id.
+ * Returns the updated question, or undefined if not found.
+ */
+export function answerQuestion(
+  id: string,
+  answer: string,
+): OrionQuestion | undefined {
+  const q = _questionLog.find((q) => q.id === id);
+  if (!q) {
+    return undefined;
+  }
+  q.answer = answer;
+  q.answeredAt = new Date().toISOString();
+  q.status = 'answered';
+  return q;
+}
+
+/**
+ * Return all pending questions from ORION.
+ */
+export function getPendingQuestions(): OrionQuestion[] {
+  return _questionLog.filter((q) => q.status === 'pending');
+}
+
+/**
+ * Return all questions (pending + answered) from ORION.
+ */
+export function getAllQuestions(): readonly OrionQuestion[] {
+  return _questionLog;
+}
+
 // ── Singleton registry ─────────────────────────────────────────────────────
 
 let _instance: VitalityEngine | null = null;

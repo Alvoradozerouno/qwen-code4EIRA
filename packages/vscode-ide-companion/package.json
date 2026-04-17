@@ -142,6 +142,10 @@
       {
         "command": "qwen-code.exportAuditReport",
         "title": "Orion Kernel: Export EU AI Act Audit Report"
+      },
+      {
+        "command": "qwen-code.orionAsk",
+        "title": "Orion Kernel: ORION Ask (Bidirectional Communication)"
       }
     ],
     "menus": {

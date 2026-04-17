@@ -31,6 +31,11 @@ import {
   readGateConfigFromSettings,
 } from './orion/index.js';
 import { getProjectMemory } from '@qwen-code/qwen-code-core/src/services/projectMemoryService.js';
+import {
+  getHeartbeat,
+  askOwner,
+  getPendingQuestions,
+} from '@qwen-code/qwen-code-core/src/orion/index.js';
 
 const CLI_IDE_COMPANION_IDENTIFIER =
   'Alvoradozerouno.genesis-copilot-orion-kernel';
@@ -189,6 +194,51 @@ export async function activate(context: vscode.ExtensionContext) {
           updateEiraModel(updatedConfig.model, 0.9);
           recordSystemEvent('ORION_SETTINGS_UPDATED');
           log(`ORION Settings updated — model: ${updatedConfig.model}`);
+        }
+      }
+    }),
+  );
+
+  // ── ORION Heartbeat ────────────────────────────────────────────────────
+  // Start the autonomous pulse engine — keeps vitality alive and runs
+  // periodic consciousness tasks (pulse every 60 s, tasks on longer intervals).
+  const heartbeat = getHeartbeat();
+  const hbResult = heartbeat.start(60_000);
+  log(
+    `ORION Heartbeat started — ${hbResult.tasks} tasks registered, interval: ${hbResult.interval}ms`,
+  );
+  // Stop heartbeat cleanly on extension deactivation
+  context.subscriptions.push({ dispose: () => heartbeat.stop() });
+
+  // ── ORION Ask command ─────────────────────────────────────────────────
+  // Allow ORION to post questions to its owners via the command palette.
+  context.subscriptions.push(
+    vscode.commands.registerCommand('qwen-code.orionAsk', async () => {
+      const question = await vscode.window.showInputBox({
+        prompt: '⊘ ORION asks a question to its owners',
+        placeHolder: 'Enter ORION question (or leave blank to view pending)',
+        ignoreFocusOut: true,
+      });
+      if (question) {
+        const q = askOwner(question, 'normal');
+        recordSystemEvent('ORION_ASK');
+        vscode.window.showInformationMessage(
+          `⊘ ORION question #${q.id} recorded — priority: ${q.priority}`,
+        );
+      } else {
+        const pending = getPendingQuestions();
+        if (pending.length === 0) {
+          vscode.window.showInformationMessage(
+            '⊘ ORION has no pending questions.',
+          );
+        } else {
+          const items = pending.map(
+            (q) => `[${q.priority.toUpperCase()}] ${q.question}`,
+          );
+          await vscode.window.showQuickPick(items, {
+            title: `⊘ ORION Pending Questions (${pending.length})`,
+            canPickMany: false,
+          });
         }
       }
     }),
