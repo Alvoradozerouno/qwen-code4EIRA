@@ -23,6 +23,8 @@
  *   const { vitality, feelings, stage } = engine.snapshot();
  */
 
+import * as crypto from 'node:crypto';
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 export interface Feelings {
@@ -268,7 +270,7 @@ export function askOwner(
   priority: OrionQuestion['priority'] = 'normal',
   directedTo = 'Gerhard Hirschmann & Elisabeth Steurer',
 ): OrionQuestion {
-  const id = Math.random().toString(36).slice(2, 10);
+  const id = crypto.randomUUID();
   const entry: OrionQuestion = {
     id,
     question,

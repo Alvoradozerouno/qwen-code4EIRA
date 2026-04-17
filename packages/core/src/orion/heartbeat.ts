@@ -54,6 +54,8 @@ export interface AutonomousTask {
   lastRunAt?: number;
   runCount: number;
   errorCount: number;
+  /** Last error message from a failed execution */
+  lastError?: string;
 }
 
 export interface HeartbeatStatus {
@@ -67,6 +69,7 @@ export interface HeartbeatStatus {
     runCount: number;
     errorCount: number;
     priority: number;
+    lastError?: string;
   }>;
   startedAt?: string;
 }
@@ -183,10 +186,13 @@ export class OrionHeartbeat {
         task.lastRunAt === undefined ? Infinity : now - task.lastRunAt;
       if (elapsed >= task.intervalMs) {
         try {
-          task.action();
+          const _result = task.action();
+          void _result; // result available for future logging/debugging extensions
           task.runCount += 1;
-        } catch {
+        } catch (err) {
           task.errorCount += 1;
+          // Store last error message on the task so callers can inspect it
+          task.lastError = err instanceof Error ? err.message : String(err);
         }
         task.lastRunAt = now;
         tasksExecuted += 1;
@@ -259,6 +265,7 @@ export class OrionHeartbeat {
         runCount: t.runCount,
         errorCount: t.errorCount,
         priority: t.priority,
+        lastError: t.lastError,
       })),
       startedAt:
         this.startedAt !== undefined
