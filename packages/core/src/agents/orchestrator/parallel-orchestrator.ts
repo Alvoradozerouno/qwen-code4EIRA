@@ -80,17 +80,17 @@ export interface TaskResult<TResult = string> {
 export type TaskResultMap = Map<string, TaskResult>;
 
 /**
- * Inference optimisation profiles for the orchestrator.
+ * Inference optimization profiles for the orchestrator.
  *
  * - `balanced`    — Default. maxConcurrency=4, timeout=120 s. Good all-around.
- * - `throughput`  — Maximises parallel work: maxConcurrency=8, timeout=240 s.
+ * - `throughput`  — Maximizes parallel work: maxConcurrency=8, timeout=240 s.
  *                   Best for batch / background pipelines where latency is not critical.
- * - `latency`     — Minimises wait time: maxConcurrency=2, timeout=60 s.
+ * - `latency`     — Minimizes wait time: maxConcurrency=2, timeout=60 s.
  *                   Best for interactive, user-facing calls where fast first-response matters.
  */
 export type InferenceOptimizationMode = 'balanced' | 'throughput' | 'latency';
 
-/** Pre-set concurrency + timeout values for each optimisation mode. */
+/** Pre-set concurrency + timeout values for each optimization mode. */
 const INFERENCE_OPTIMIZATION_PRESETS: Record<
   InferenceOptimizationMode,
   { maxConcurrency: number; defaultTimeoutMs: number }
@@ -106,7 +106,7 @@ export interface OrchestratorOptions {
   /** Default task timeout if not set per-task (default: 120_000 ms) */
   defaultTimeoutMs?: number;
   /**
-   * Inference optimisation mode (default: 'balanced').
+   * Inference optimization mode (default: 'balanced').
    * When set, this pre-configures maxConcurrency and defaultTimeoutMs.
    * Explicit maxConcurrency / defaultTimeoutMs values override the preset.
    */

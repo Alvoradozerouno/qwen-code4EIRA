@@ -143,7 +143,7 @@ function recomputePhi(): void {
   } else if (
     state.proofChainValid &&
     state.phi >= 0.7 &&
-    (state.lastK === 0 || state.lastK >= K_THRESHOLD)
+    state.lastK >= K_THRESHOLD
   ) {
     state.status = 'VERIFIED_STABLE';
   } else {
