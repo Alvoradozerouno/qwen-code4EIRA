@@ -27,6 +27,17 @@ vi.mock('vscode', () => ({
   window: {
     createOutputChannel: vi.fn(() => ({
       appendLine: vi.fn(),
+      clear: vi.fn(),
+      show: vi.fn(),
+    })),
+    createStatusBarItem: vi.fn(() => ({
+      command: '',
+      text: '',
+      tooltip: undefined,
+      backgroundColor: undefined,
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn(),
     })),
     showInformationMessage: vi.fn(),
     createTerminal: vi.fn(() => ({
@@ -57,6 +68,10 @@ vi.mock('vscode', () => ({
     registerFileSystemProvider: vi.fn(() => ({
       dispose: vi.fn(),
     })),
+    getConfiguration: vi.fn(() => ({
+      get: vi.fn(),
+    })),
+    onDidChangeConfiguration: vi.fn(),
   },
   commands: {
     registerCommand: vi.fn(),
@@ -69,6 +84,15 @@ vi.mock('vscode', () => ({
     Development: 1,
     Production: 2,
   },
+  StatusBarAlignment: {
+    Left: 1,
+    Right: 2,
+  },
+  ThemeColor: vi.fn(),
+  MarkdownString: vi.fn(() => ({
+    appendMarkdown: vi.fn(),
+    isTrusted: false,
+  })),
   EventEmitter: vi.fn(() => ({
     event: vi.fn(),
     fire: vi.fn(),
