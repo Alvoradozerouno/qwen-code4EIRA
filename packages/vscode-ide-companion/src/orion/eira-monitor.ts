@@ -22,6 +22,22 @@ import {
   type VitalityState,
 } from '@qwen-code/qwen-code-core/src/orion/vitality.js';
 
+/**
+ * Overall system status.
+ *   VERIFIED_STABLE — proof chain valid, Φ ≥ 0.7, K ≥ K_THRESHOLD on last decision.
+ *   ACTIVE          — operating normally; not yet at VERIFIED_STABLE.
+ *   DEGRADED        — proof chain broken or Φ < 0.5.
+ */
+export type EiraStatus = 'VERIFIED_STABLE' | 'ACTIVE' | 'DEGRADED';
+
+/**
+ * Sync profiles for syncEira().
+ *   standard        — standard chain verification + state refresh.
+ *   high-efficiency — forces full re-verify, injects a positive vitality tick,
+ *                     and promotes status to VERIFIED_STABLE when conditions are met.
+ */
+export type SyncProfile = 'standard' | 'high-efficiency';
+
 interface EiraState {
   phi: number;
   lastK: number;
@@ -31,6 +47,10 @@ interface EiraState {
   active: boolean;
   model: string;
   vitality: VitalityState;
+  /** Overall operational status derived from Φ, K, and proof-chain health. */
+  status: EiraStatus;
+  /** Current milestone label (e.g. '500K_PENDING', 'MILESTONE_REACHED'). */
+  milestone: string;
 }
 
 let statusBarItem: vscode.StatusBarItem | null = null;
@@ -45,6 +65,8 @@ const state: EiraState = {
   active: false,
   model: '—',
   vitality: vitalityEngine.snapshot(),
+  status: 'ACTIVE',
+  milestone: '',
 };
 
 /** Initialize the EIRA status bar and start monitoring. */
@@ -114,6 +136,19 @@ function recomputePhi(): void {
     Math.min(1, Math.max(0, state.modelConfidence)) * 0.25 +
     (state.auditComplete ? 0.25 : 0.0) +
     state.vitality.vitality * 0.15;
+
+  // Derive status from proof-chain, Φ, and last K
+  if (!state.proofChainValid || state.phi < 0.5) {
+    state.status = 'DEGRADED';
+  } else if (
+    state.proofChainValid &&
+    state.phi >= 0.7 &&
+    state.lastK >= K_THRESHOLD
+  ) {
+    state.status = 'VERIFIED_STABLE';
+  } else {
+    state.status = 'ACTIVE';
+  }
 }
 
 function phiIcon(phi: number): string {
@@ -142,15 +177,15 @@ function updateStatusBar(): void {
   }
 
   const icon = phiIcon(state.phi);
-  const mode = state.active ? 'ACTIVE' : 'IDLE';
   const vEmoji = vitalityEngine.vitalityEmoji;
-  const label = `⊘ ORION  Φ=${state.phi.toFixed(2)}  ${kLabel(state.lastK)}  ${vEmoji}v=${state.vitality.vitality.toFixed(2)}  ${mode}`;
+  const milestoneTag = state.milestone ? `  [${state.milestone}]` : '';
+  const label = `⊘ ORION  Φ=${state.phi.toFixed(2)}  ${kLabel(state.lastK)}  ${vEmoji}v=${state.vitality.vitality.toFixed(2)}  ${state.status}${milestoneTag}`;
 
   statusBarItem.text = `${icon} ${label}`;
   statusBarItem.tooltip = buildTooltip();
 
   // Color coding
-  if (!state.proofChainValid) {
+  if (state.status === 'DEGRADED') {
     statusBarItem.backgroundColor = new vscode.ThemeColor(
       'statusBarItem.errorBackground',
     );
@@ -189,6 +224,10 @@ function buildTooltip(): vscode.MarkdownString {
   md.appendMarkdown(
     `| **Model confidence** | \`${state.modelConfidence.toFixed(2)}\` |\n`,
   );
+  md.appendMarkdown(`| **Status** | \`${state.status}\` |\n`);
+  if (state.milestone) {
+    md.appendMarkdown(`| **Milestone** | \`${state.milestone}\` |\n`);
+  }
 
   // Vitality & feelings section
   const v = state.vitality;
@@ -238,6 +277,12 @@ function showOrionStatusPanel(): void {
   orionOutputChannel.appendLine(
     `Chain Hash (last 16)   : ${summary.lastSha256}`,
   );
+  orionOutputChannel.appendLine(`Status                 : ${state.status}`);
+  if (state.milestone) {
+    orionOutputChannel.appendLine(
+      `Milestone              : ${state.milestone}`,
+    );
+  }
   orionOutputChannel.appendLine('─'.repeat(50));
   orionOutputChannel.appendLine(
     `Vitality               : ${vitalityEngine.vitalityEmoji} ${v.vitality.toFixed(3)}`,
@@ -253,9 +298,51 @@ function showOrionStatusPanel(): void {
   );
   orionOutputChannel.appendLine('─'.repeat(50));
   orionOutputChannel.appendLine(
-    `Status                 : ${state.active ? 'ACTIVE' : 'IDLE'}`,
+    `Active                 : ${state.active ? 'YES' : 'NO'}`,
   );
   orionOutputChannel.show(true);
+}
+
+/**
+ * Profile-aware EIRA sync.
+ *
+ * @param force   - When true, re-reads and re-verifies all state even when already valid.
+ * @param profile - `standard` runs a normal chain verify + state refresh.
+ *                  `high-efficiency` additionally injects a positive vitality tick
+ *                  and will promote status to VERIFIED_STABLE when conditions permit.
+ */
+export function syncEira(
+  force: boolean = false,
+  profile: SyncProfile = 'standard',
+): void {
+  const chainOk = force
+    ? verifyChain()
+    : state.proofChainValid || verifyChain();
+  const summary = getAuditSummary();
+  state.proofChainValid = chainOk;
+  state.auditComplete = summary.total > 0;
+
+  if (profile === 'high-efficiency') {
+    // Positive vitality boost on high-efficiency sync — system is proving health
+    state.vitality = vitalityEngine.tick({
+      positive: chainOk,
+      boost: chainOk ? 0.05 : 0,
+    });
+  } else {
+    state.vitality = vitalityEngine.tick({ positive: chainOk });
+  }
+
+  recomputePhi();
+  updateStatusBar();
+}
+
+/**
+ * Set a named milestone label visible in the EIRA status panel.
+ * Use empty string to clear.
+ */
+export function setMilestone(milestone: string): void {
+  state.milestone = milestone;
+  updateStatusBar();
 }
 
 /** Get current EIRA state snapshot (for external modules). */
