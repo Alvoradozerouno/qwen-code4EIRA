@@ -279,3 +279,18 @@ export {
   firePermissionRequestHook,
   type NotificationHookResult,
 } from './core/toolHookTriggers.js';
+
+// ============================================================================
+// PRAETOR — Physics & Orch-OR Consciousness Engine
+// ============================================================================
+
+export * from './physics/physics-types.js';
+export * from './physics/orch-or-engine.js';
+export * from './physics/physics-engine.js';
+export * from './kernel/nexus-point.js';
+
+// ============================================================================
+// ORION — Vitality & Self-Consistency
+// ============================================================================
+
+export * from './orion/index.js';
