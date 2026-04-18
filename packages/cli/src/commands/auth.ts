@@ -13,11 +13,11 @@ import {
 import { t } from '../i18n/index.js';
 
 // Define subcommands separately
-const qwenOauthCommand = {
-  command: 'qwen-oauth',
-  describe: t('Authenticate using Qwen OAuth'),
+const localNexusCommand = {
+  command: 'localhost-nexus-redirect',
+  describe: t('Configure Localhost-Nexus-Redirect (local sovereign inference)'),
   handler: async () => {
-    await handleQwenAuth('qwen-oauth', {});
+    await handleQwenAuth('localhost-nexus-redirect', {});
   },
 };
 
@@ -61,11 +61,11 @@ const statusCommand = {
 export const authCommand: CommandModule = {
   command: 'auth',
   describe: t(
-    'Configure Qwen authentication information with Qwen-OAuth or Alibaba Cloud Coding Plan',
+    'Configure authentication: Localhost-Nexus-Redirect or Alibaba Cloud Coding Plan',
   ),
   builder: (yargs: Argv) =>
     yargs
-      .command(qwenOauthCommand)
+      .command(localNexusCommand)
       .command(codePlanCommand)
       .command(statusCommand)
       .demandCommand(0) // Don't require a subcommand

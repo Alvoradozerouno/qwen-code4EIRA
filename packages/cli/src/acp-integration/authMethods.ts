@@ -19,13 +19,13 @@ export function buildAuthMethods(): AuthMethod[] {
       },
     },
     {
-      id: AuthType.QWEN_OAUTH,
-      name: 'Qwen OAuth',
+      id: AuthType.USE_LOCAL_NEXUS,
+      name: 'Localhost-Nexus-Redirect',
       description:
-        'OAuth authentication for Qwen models with free daily requests (ending 2026-04-15)',
+        'Fully local sovereign inference — ollama-compatible endpoint at http://localhost:11434/v1. No API key required.',
       _meta: {
         type: 'terminal',
-        args: ['--auth-type=qwen-oauth'],
+        args: ['--auth-type=localhost-nexus-redirect'],
       },
     },
   ];
@@ -43,8 +43,14 @@ export function pickAuthMethodsForDetails(details?: string): AuthMethod[] {
   if (!details) {
     return authMethods;
   }
-  if (details.includes('qwen-oauth') || details.includes('Qwen OAuth')) {
-    const narrowed = filterAuthMethodsById(authMethods, AuthType.QWEN_OAUTH);
+  if (
+    details.includes('localhost-nexus-redirect') ||
+    details.includes('Localhost-Nexus-Redirect')
+  ) {
+    const narrowed = filterAuthMethodsById(
+      authMethods,
+      AuthType.USE_LOCAL_NEXUS,
+    );
     return narrowed.length ? narrowed : authMethods;
   }
   return authMethods;

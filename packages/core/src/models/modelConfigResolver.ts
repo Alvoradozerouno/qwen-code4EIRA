@@ -39,7 +39,7 @@ import {
 import {
   AUTH_ENV_MAPPINGS,
   DEFAULT_MODELS,
-  QWEN_OAUTH_ALLOWED_MODELS,
+  LOCAL_NEXUS_ALLOWED_MODELS,
   MODEL_GENERATION_CONFIG_FIELDS,
 } from './constants.js';
 import type { ModelConfig as ModelProviderConfig } from './types.js';
@@ -125,7 +125,7 @@ export function resolveModelConfig(
   const sources: ConfigSources = {};
 
   // Special handling for Qwen OAuth
-  if (authType === AuthType.QWEN_OAUTH) {
+  if (authType === AuthType.USE_LOCAL_NEXUS) {
     return resolveQwenOAuthConfig(input, warnings);
   }
 
@@ -282,7 +282,7 @@ function resolveQwenOAuthConfig(
   const sources: ConfigSources = {};
 
   // Qwen OAuth only allows specific models
-  const allowedModels = new Set<string>(QWEN_OAUTH_ALLOWED_MODELS);
+  const allowedModels = new Set<string>(LOCAL_NEXUS_ALLOWED_MODELS);
 
   // Determine requested model
   const requestedModel = cli?.model || settings?.model;
@@ -354,13 +354,13 @@ function resolveQwenOAuthConfig(
   const generationConfig = resolveGenerationConfig(
     settings?.generationConfig,
     modelProvider?.generationConfig,
-    AuthType.QWEN_OAUTH,
+    AuthType.USE_LOCAL_NEXUS,
     resolvedModel,
     sources,
   );
 
   const config: ContentGeneratorConfig = {
-    authType: AuthType.QWEN_OAUTH,
+    authType: AuthType.USE_LOCAL_NEXUS,
     model: resolvedModel,
     apiKey: apiKeyResult?.value,
     baseUrl: baseUrlResult.value,

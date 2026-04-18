@@ -82,30 +82,26 @@ export const AUTH_ENV_MAPPINGS = {
     baseUrl: [],
     model: ['GOOGLE_MODEL'],
   },
-  'qwen-oauth': {
-    apiKey: ['GENESIS_ORION_API_KEY', 'OPENROUTER_API_KEY', 'OPENAI_API_KEY'],
-    baseUrl: ['OPENAI_BASE_URL'],
-    model: ['OPENAI_MODEL'],
+  'localhost-nexus-redirect': {
+    apiKey: [],
+    baseUrl: [],
+    model: [],
   },
 } as const satisfies Record<AuthType, AuthEnvMapping>;
 
 export const DEFAULT_MODELS = {
   openai: MAINLINE_CODER_MODEL,
-  'qwen-oauth': DEFAULT_QWEN_MODEL,
+  'localhost-nexus-redirect': DEFAULT_QWEN_MODEL,
 } as Partial<Record<AuthType, string>>;
 
 /**
- * Hard-coded Qwen OAuth models that are always available.
+ * Hard-coded Localhost-Nexus-Redirect models available via the local inference server.
  * These cannot be overridden by user configuration.
  *
- * Organised in tiers:
- *   Tier 0 — Free Qwen3 models (no cost, rate-limited)
- *   Tier 1 — Paid Qwen models (best Qwen quality, low-medium cost)
- *   Tier 2 — Top frontier models via OpenRouter (Claude, GPT, Gemini, Llama)
- *             All accessible with the same OpenRouter API key — no separate
- *             provider accounts needed.
+ * The local inference server (http://localhost:11434/v1) should serve these models.
+ * Ollama-compatible endpoint — no API key required.
  */
-export const QWEN_OAUTH_MODELS: ModelConfig[] = [
+export const LOCAL_NEXUS_MODELS: ModelConfig[] = [
   // ── Tier 0: Free Qwen3 ───────────────────────────────────────────────────
   {
     id: 'qwen/qwen3-235b-a22b:free',
@@ -213,9 +209,9 @@ export const QWEN_OAUTH_MODELS: ModelConfig[] = [
 ];
 
 /**
- * Derive allowed models from QWEN_OAUTH_MODELS for authorization.
+ * Derive allowed models from LOCAL_NEXUS_MODELS for authorization.
  * This ensures single source of truth (SSOT).
  */
-export const QWEN_OAUTH_ALLOWED_MODELS = QWEN_OAUTH_MODELS.map(
+export const LOCAL_NEXUS_ALLOWED_MODELS = LOCAL_NEXUS_MODELS.map(
   (model) => model.id,
 ) as readonly string[];

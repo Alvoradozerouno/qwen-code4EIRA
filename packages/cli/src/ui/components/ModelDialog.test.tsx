@@ -29,11 +29,11 @@ vi.mock('./shared/DescriptiveRadioButtonSelect.js', () => ({
 // Helper to create getAvailableModelsForAuthType mock
 const createMockGetAvailableModelsForAuthType = () =>
   vi.fn((t: AuthType) => {
-    if (t === AuthType.QWEN_OAUTH) {
+    if (t === AuthType.USE_LOCAL_NEXUS) {
       return getFilteredQwenModels().map((m) => ({
         id: m.id,
         label: m.label,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       }));
     }
     return [];
@@ -61,13 +61,13 @@ const renderComponent = (
     getModel: vi.fn(() => DEFAULT_QWEN_MODEL),
     setModel: vi.fn().mockResolvedValue(undefined),
     switchModel: vi.fn().mockResolvedValue(undefined),
-    getAuthType: vi.fn(() => 'qwen-oauth'),
+    getAuthType: vi.fn(() => 'localhost-nexus-redirect'),
     getAllConfiguredModels: vi.fn(() =>
       getFilteredQwenModels().map((m) => ({
         id: m.id,
         label: m.label,
         description: m.description || '',
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       })),
     ),
 
@@ -76,7 +76,7 @@ const renderComponent = (
     getSessionId: vi.fn(() => 'mock-session-id'),
     getDebugMode: vi.fn(() => false),
     getContentGeneratorConfig: vi.fn(() => ({
-      authType: AuthType.QWEN_OAUTH,
+      authType: AuthType.USE_LOCAL_NEXUS,
       model: DEFAULT_QWEN_MODEL,
     })),
     getUseModelRouter: vi.fn(() => false),
@@ -127,7 +127,7 @@ describe('<ModelDialog />', () => {
     expect(props.items).toHaveLength(getFilteredQwenModels().length);
     // coder-model is the only model and it has vision capability
     expect(props.items[0].value).toBe(
-      `${AuthType.QWEN_OAUTH}::${DEFAULT_QWEN_MODEL}`,
+      `${AuthType.USE_LOCAL_NEXUS}::${DEFAULT_QWEN_MODEL}`,
     );
     expect(props.showNumbers).toBe(true);
   });
@@ -197,11 +197,11 @@ describe('<ModelDialog />', () => {
       {},
       {
         getAvailableModelsForAuthType: vi.fn((t: AuthType) => {
-          if (t === AuthType.QWEN_OAUTH) {
+          if (t === AuthType.USE_LOCAL_NEXUS) {
             return getFilteredQwenModels().map((m) => ({
               id: m.id,
               label: m.label,
-              authType: AuthType.QWEN_OAUTH,
+              authType: AuthType.USE_LOCAL_NEXUS,
             }));
           }
           return [];
@@ -212,10 +212,10 @@ describe('<ModelDialog />', () => {
     const childOnSelect = mockedSelect.mock.calls[0][0].onSelect;
     expect(childOnSelect).toBeDefined();
 
-    await childOnSelect(`${AuthType.QWEN_OAUTH}::${DEFAULT_QWEN_MODEL}`);
+    await childOnSelect(`${AuthType.USE_LOCAL_NEXUS}::${DEFAULT_QWEN_MODEL}`);
 
     expect(mockConfig?.switchModel).toHaveBeenCalledWith(
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
       DEFAULT_QWEN_MODEL,
       undefined,
     );
@@ -227,7 +227,7 @@ describe('<ModelDialog />', () => {
     expect(mockSettings.setValue).toHaveBeenCalledWith(
       SettingScope.User,
       'security.auth.selectedType',
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
     );
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
@@ -239,11 +239,11 @@ describe('<ModelDialog />', () => {
       if (t === AuthType.USE_OPENAI) {
         return [{ id: 'gpt-4', label: 'GPT-4', authType: t }];
       }
-      if (t === AuthType.QWEN_OAUTH) {
+      if (t === AuthType.USE_LOCAL_NEXUS) {
         return getFilteredQwenModels().map((m) => ({
           id: m.id,
           label: m.label,
-          authType: AuthType.QWEN_OAUTH,
+          authType: AuthType.USE_LOCAL_NEXUS,
         }));
       }
       return [];
@@ -253,7 +253,7 @@ describe('<ModelDialog />', () => {
       getAuthType,
       getModel: vi.fn(() => 'gpt-4'),
       getContentGeneratorConfig: vi.fn(() => ({
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
         model: DEFAULT_QWEN_MODEL,
       })),
       // Add switchModel to the mock object (not the type)
@@ -268,10 +268,10 @@ describe('<ModelDialog />', () => {
     );
 
     const childOnSelect = mockedSelect.mock.calls[0][0].onSelect;
-    await childOnSelect(`${AuthType.QWEN_OAUTH}::${DEFAULT_QWEN_MODEL}`);
+    await childOnSelect(`${AuthType.USE_LOCAL_NEXUS}::${DEFAULT_QWEN_MODEL}`);
 
     expect(switchModel).toHaveBeenCalledWith(
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
       DEFAULT_QWEN_MODEL,
       { requireCachedCredentials: true },
     );
@@ -283,7 +283,7 @@ describe('<ModelDialog />', () => {
     expect(mockSettings.setValue).toHaveBeenCalledWith(
       SettingScope.User,
       'security.auth.selectedType',
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
     );
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });
@@ -329,7 +329,7 @@ describe('<ModelDialog />', () => {
 
   it('updates initialIndex when config context changes', () => {
     const mockGetModel = vi.fn(() => DEFAULT_QWEN_MODEL);
-    const mockGetAuthType = vi.fn(() => 'qwen-oauth');
+    const mockGetAuthType = vi.fn(() => 'localhost-nexus-redirect');
     const mockSettings = {
       isTrusted: true,
       user: { settings: {} },
@@ -350,7 +350,7 @@ describe('<ModelDialog />', () => {
                   id: m.id,
                   label: m.label,
                   description: m.description || '',
-                  authType: AuthType.QWEN_OAUTH,
+                  authType: AuthType.USE_LOCAL_NEXUS,
                 })),
               ),
             } as unknown as Config
@@ -374,7 +374,7 @@ describe('<ModelDialog />', () => {
           id: m.id,
           label: m.label,
           description: m.description || '',
-          authType: AuthType.QWEN_OAUTH,
+          authType: AuthType.USE_LOCAL_NEXUS,
         })),
       ),
     } as unknown as Config;

@@ -35,8 +35,8 @@ function getAuthDisplayType(
   }
 
   switch (authType) {
-    case AuthType.QWEN_OAUTH:
-      return AuthDisplayType.QWEN_OAUTH;
+    case AuthType.USE_LOCAL_NEXUS:
+      return AuthDisplayType.LOCAL_NEXUS;
     default:
       return AuthDisplayType.API_KEY;
   }

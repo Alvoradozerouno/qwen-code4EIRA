@@ -300,7 +300,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 100,
         maxDelayMs: 1000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       // Fast-forward time for delays
@@ -324,7 +324,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 1000,
         maxDelayMs: 5000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       await expect(promise).rejects.toThrow(
@@ -347,7 +347,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 1000,
         maxDelayMs: 5000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       await expect(promise).rejects.toThrow(
@@ -374,7 +374,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 100,
         maxDelayMs: 1000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       // Fast-forward time for delays
@@ -399,7 +399,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 100,
         maxDelayMs: 1000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       // Fast-forward time for delays
@@ -423,7 +423,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 1000,
         maxDelayMs: 5000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       await expect(promise).rejects.toThrow(
@@ -448,7 +448,7 @@ describe('retryWithBackoff', () => {
         maxAttempts: 5,
         initialDelayMs: 100,
         maxDelayMs: 1000,
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
       });
 
       // Fast-forward time for delays

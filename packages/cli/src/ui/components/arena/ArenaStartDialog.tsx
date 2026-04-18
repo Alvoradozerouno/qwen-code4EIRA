@@ -36,7 +36,7 @@ export function ArenaStartDialog({
 
     return selectableModels.map((model) => {
       const token = `${model.authType}:${model.id}`;
-      const isQwenOauth = model.authType === AuthType.QWEN_OAUTH;
+      const isQwenOauth = model.authType === AuthType.USE_LOCAL_NEXUS;
       return {
         key: token,
         value: token,
@@ -45,7 +45,7 @@ export function ArenaStartDialog({
       };
     });
   }, [config]);
-  const hasDisabledQwenOauth = modelItems.some((item) => item.disabled);
+  const hasDisabledLocalNexus = modelItems.some((item) => item.disabled);
   const selectableModelCount = modelItems.filter(
     (item) => !item.disabled,
   ).length;
@@ -109,11 +109,13 @@ export function ArenaStartDialog({
         </Box>
       )}
 
-      {(hasDisabledQwenOauth || needsMoreModels) && (
+      {(hasDisabledLocalNexus || needsMoreModels) && (
         <Box marginTop={1} flexDirection="column">
-          {hasDisabledQwenOauth && (
+          {hasDisabledLocalNexus && (
             <Text color={theme.status.warning}>
-              {t('Note: qwen-oauth models are not supported in Arena.')}
+              {t(
+                'Note: localhost-nexus-redirect models are not supported in Arena.',
+              )}
             </Text>
           )}
           {needsMoreModels && (

@@ -423,14 +423,14 @@ describe('Server Config (config.ts)', () => {
     });
   });
 
-  describe('model switching optimization (QWEN_OAUTH)', () => {
-    it('should switch qwen-oauth model in-place without refreshing auth when safe', async () => {
+  describe('model switching optimization (USE_LOCAL_NEXUS)', () => {
+    it('should switch localhost-nexus-redirect model in-place without refreshing auth when safe', async () => {
       const config = new Config(baseParams);
 
       const mockContentConfig: ContentGeneratorConfig = {
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
         model: 'qwen/qwen3-235b-a22b:free',
-        apiKey: 'QWEN_OAUTH_DYNAMIC_TOKEN',
+        apiKey: 'LOCAL_NEXUS_DYNAMIC_TOKEN',
         baseUrl: DEFAULT_DASHSCOPE_BASE_URL,
         timeout: 60000,
         maxRetries: 3,
@@ -453,14 +453,14 @@ describe('Server Config (config.ts)', () => {
         embedContent: vi.fn(),
       } as unknown as ContentGenerator);
 
-      // Establish initial qwen-oauth content generator config/content generator.
-      await config.refreshAuth(AuthType.QWEN_OAUTH);
+      // Establish initial localhost-nexus-redirect content generator config/content generator.
+      await config.refreshAuth(AuthType.USE_LOCAL_NEXUS);
 
       // Spy after initial refresh to ensure model switch does not re-trigger refreshAuth.
       const refreshSpy = vi.spyOn(config, 'refreshAuth');
 
       await config.switchModel(
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
         'qwen/qwen3-235b-a22b:free',
       );
 
@@ -1521,7 +1521,7 @@ describe('Model Switching and Config Updates', () => {
     // Initialize with first model
     const initialConfig: ContentGeneratorConfig = {
       ['model']: 'qwen3-coder-plus',
-      ['authType']: AuthType.QWEN_OAUTH,
+      ['authType']: AuthType.USE_LOCAL_NEXUS,
       ['apiKey']: 'test-key',
       ['contextWindowSize']: 1_000_000,
       ['samplingParams']: { temperature: 0.7 },
@@ -1536,7 +1536,7 @@ describe('Model Switching and Config Updates', () => {
       },
     });
 
-    await config.refreshAuth(AuthType.QWEN_OAUTH);
+    await config.refreshAuth(AuthType.USE_LOCAL_NEXUS);
 
     // Verify initial config
     const contentGenConfig = config.getContentGeneratorConfig();
@@ -1546,7 +1546,7 @@ describe('Model Switching and Config Updates', () => {
     // Switch to a different model with different token limits
     const newConfig: ContentGeneratorConfig = {
       ['model']: 'qwen-max',
-      ['authType']: AuthType.QWEN_OAUTH,
+      ['authType']: AuthType.USE_LOCAL_NEXUS,
       ['apiKey']: 'test-key',
       ['contextWindowSize']: 128_000,
       ['samplingParams']: { temperature: 0.8 },
@@ -1571,7 +1571,7 @@ describe('Model Switching and Config Updates', () => {
           requiresRefresh: boolean,
         ) => Promise<void>;
       }
-    ).handleModelChange(AuthType.QWEN_OAUTH, false);
+    ).handleModelChange(AuthType.USE_LOCAL_NEXUS, false);
 
     // Verify all fields are updated
     const updatedConfig = config.getContentGeneratorConfig();
@@ -1590,13 +1590,13 @@ describe('Model Switching and Config Updates', () => {
     expect(sources['enableCacheControl']?.kind).toBe('settings');
   });
 
-  it('should trigger full refresh when switching to non-qwen-oauth provider', async () => {
+  it('should trigger full refresh when switching to non-localhost-nexus-redirect provider', async () => {
     const config = new Config(baseParams);
 
-    // Initialize with qwen-oauth
+    // Initialize with localhost-nexus-redirect
     const initialConfig: ContentGeneratorConfig = {
       ['model']: 'qwen3-coder-plus',
-      ['authType']: AuthType.QWEN_OAUTH,
+      ['authType']: AuthType.USE_LOCAL_NEXUS,
       ['apiKey']: 'test-key',
       ['contextWindowSize']: 1_000_000,
     };
@@ -1606,7 +1606,7 @@ describe('Model Switching and Config Updates', () => {
       sources: {},
     });
 
-    await config.refreshAuth(AuthType.QWEN_OAUTH);
+    await config.refreshAuth(AuthType.USE_LOCAL_NEXUS);
 
     // Switch to different auth type (should trigger full refresh)
     const newConfig: ContentGeneratorConfig = {
@@ -1648,7 +1648,7 @@ describe('Model Switching and Config Updates', () => {
     // Initialize with config that has undefined token limits
     const initialConfig: ContentGeneratorConfig = {
       ['model']: 'qwen3-coder-plus',
-      ['authType']: AuthType.QWEN_OAUTH,
+      ['authType']: AuthType.USE_LOCAL_NEXUS,
       ['apiKey']: 'test-key',
       ['contextWindowSize']: undefined,
     };
@@ -1658,12 +1658,12 @@ describe('Model Switching and Config Updates', () => {
       sources: {},
     });
 
-    await config.refreshAuth(AuthType.QWEN_OAUTH);
+    await config.refreshAuth(AuthType.USE_LOCAL_NEXUS);
 
     // Switch to model with defined limits
     const newConfig: ContentGeneratorConfig = {
       ['model']: 'qwen-max',
-      ['authType']: AuthType.QWEN_OAUTH,
+      ['authType']: AuthType.USE_LOCAL_NEXUS,
       ['apiKey']: 'test-key',
       ['contextWindowSize']: 128_000,
     };
@@ -1680,7 +1680,7 @@ describe('Model Switching and Config Updates', () => {
           requiresRefresh: boolean,
         ) => Promise<void>;
       }
-    ).handleModelChange(AuthType.QWEN_OAUTH, false);
+    ).handleModelChange(AuthType.USE_LOCAL_NEXUS, false);
 
     // Verify limits are now defined
     const updatedConfig = config.getContentGeneratorConfig();

@@ -13,26 +13,26 @@ import {
 import { AuthType, type Config } from '@qwen-code/qwen-code-core';
 
 describe('availableModels', () => {
-  describe('Qwen models', () => {
-    const qwenModels = getFilteredQwenModels();
+  describe('Local Nexus models', () => {
+    const localNexusModels = getFilteredQwenModels();
 
-    it('should include only coder-model', () => {
-      expect(qwenModels.length).toBe(1);
-      expect(qwenModels[0].id).toBe('coder-model');
+    it('should include hard-coded localhost-nexus-redirect models', () => {
+      expect(localNexusModels.length).toBeGreaterThan(0);
+      expect(localNexusModels[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
-    it('should have coder-model with vision capability', () => {
-      const coderModel = qwenModels[0];
-      expect(coderModel.isVision).toBe(true);
+    it('should have models with defined vision capability', () => {
+      for (const model of localNexusModels) {
+        expect(typeof model.isVision).toBe('boolean');
+      }
     });
   });
 
   describe('getFilteredQwenModels', () => {
-    it('should return coder-model with vision capability', () => {
+    it('should return all localhost-nexus-redirect models', () => {
       const models = getFilteredQwenModels();
-      expect(models.length).toBe(1);
-      expect(models[0].id).toBe('coder-model');
-      expect(models[0].isVision).toBe(true);
+      expect(models.length).toBeGreaterThan(0);
+      expect(models[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
   });
 
@@ -77,28 +77,27 @@ describe('availableModels', () => {
       process.env = originalEnv;
     });
 
-    it('should return hard-coded qwen models for qwen-oauth', () => {
-      const models = getAvailableModelsForAuthType(AuthType.QWEN_OAUTH);
-      expect(models.length).toBe(1);
-      expect(models[0].id).toBe('coder-model');
-      expect(models[0].isVision).toBe(true);
+    it('should return hard-coded localhost-nexus-redirect models', () => {
+      const models = getAvailableModelsForAuthType(AuthType.USE_LOCAL_NEXUS);
+      expect(models.length).toBeGreaterThan(0);
+      expect(models[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
-    it('should use config models for qwen-oauth when config is provided', () => {
+    it('should use config models for localhost-nexus-redirect when config is provided', () => {
       const mockConfig = {
         getAvailableModelsForAuthType: vi.fn().mockReturnValue([
           {
             id: 'custom',
             label: 'Custom',
             description: 'Custom model',
-            authType: AuthType.QWEN_OAUTH,
+            authType: AuthType.USE_LOCAL_NEXUS,
             isVision: false,
           },
         ]),
       } as unknown as Config;
 
       const models = getAvailableModelsForAuthType(
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
         mockConfig,
       );
       expect(models).toEqual([

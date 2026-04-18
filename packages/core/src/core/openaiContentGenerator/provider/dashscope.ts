@@ -33,7 +33,7 @@ export class DashScopeOpenAICompatibleProvider extends DefaultOpenAICompatiblePr
     // Never use DashScope headers when routing through OpenRouter
     if (baseUrl?.includes('openrouter.ai')) return false;
 
-    if (authType === AuthType.QWEN_OAUTH) return true;
+    if (authType === AuthType.USE_LOCAL_NEXUS) return true;
     if (!baseUrl) return true;
 
     // Matches: dashscope.aliyuncs.com, *.dashscope.aliyuncs.com, or *.dashscope-intl.aliyuncs.com

@@ -21,7 +21,7 @@ interface AccountInfoDialogProps {
 }
 
 const AUTH_LABELS: Record<string, string> = {
-  'qwen-oauth': 'Qwen OAuth',
+  'localhost-nexus-redirect': 'Qwen OAuth',
   openai: 'OpenAI-compatible',
   gemini: 'Gemini',
   anthropic: 'Anthropic',

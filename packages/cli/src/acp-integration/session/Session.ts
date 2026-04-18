@@ -677,7 +677,7 @@ export class Session implements SessionContext {
       selectedAuthType,
       parsed.modelId,
       selectedAuthType !== previousAuthType &&
-        selectedAuthType === AuthType.QWEN_OAUTH
+        selectedAuthType === AuthType.USE_LOCAL_NEXUS
         ? { requireCachedCredentials: true }
         : undefined,
     );

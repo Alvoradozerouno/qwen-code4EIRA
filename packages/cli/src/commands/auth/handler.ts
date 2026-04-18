@@ -53,7 +53,7 @@ interface MergedSettingsWithCodingPlan {
  * Handles the authentication process based on the specified command and options
  */
 export async function handleQwenAuth(
-  command: 'qwen-oauth' | 'coding-plan',
+  command: 'localhost-nexus-redirect' | 'coding-plan',
   options: QwenAuthOptions,
 ) {
   try {
@@ -119,8 +119,8 @@ export async function handleQwenAuth(
       [], // No extensions for auth command
     );
 
-    if (command === 'qwen-oauth') {
-      await handleQwenOAuth(config, settings);
+    if (command === 'localhost-nexus-redirect') {
+      await handleLocalNexus(config, settings);
     } else if (command === 'coding-plan') {
       await handleCodePlanAuth(config, settings, options);
     }
@@ -135,30 +135,34 @@ export async function handleQwenAuth(
 }
 
 /**
- * Handles Qwen OAuth authentication
+ * Handles Localhost-Nexus-Redirect authentication — no OAuth, fully local and sovereign.
  */
-async function handleQwenOAuth(
-  config: Config,
+async function handleLocalNexus(
+  _config: Config,
   settings: LoadedSettings,
 ): Promise<void> {
-  writeStdoutLine(t('Starting Qwen OAuth authentication...'));
+  writeStdoutLine(
+    t('Configuring Localhost-Nexus-Redirect (http://localhost:11434/v1)...'),
+  );
 
   try {
-    await config.refreshAuth(AuthType.QWEN_OAUTH);
-
-    // Persist the auth type
+    // Persist the auth type — no remote credential exchange needed
     const authTypeScope = getPersistScopeForModelSelection(settings);
     settings.setValue(
       authTypeScope,
       'security.auth.selectedType',
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
     );
 
-    writeStdoutLine(t('Successfully authenticated with Qwen OAuth.'));
+    writeStdoutLine(
+      t(
+        'Localhost-Nexus-Redirect configured. Ensure your local inference server is running at http://localhost:11434/v1.',
+      ),
+    );
     process.exit(0);
   } catch (error) {
     writeStderrLine(
-      t('Failed to authenticate with Qwen OAuth: {{error}}', {
+      t('Failed to configure Localhost-Nexus-Redirect: {{error}}', {
         error: getErrorMessage(error),
       }),
     );
@@ -368,9 +372,11 @@ export async function runInteractiveAuth() {
   const selector = new InteractiveSelector(
     [
       {
-        value: 'qwen-oauth' as const,
-        label: t('Qwen OAuth'),
-        description: t('Free · 100 requests/day · Ending 2026-04-15'),
+        value: 'localhost-nexus-redirect' as const,
+        label: t('Localhost-Nexus-Redirect'),
+        description: t(
+          'Fully local · Sovereign · Ollama-compatible (http://localhost:11434/v1)',
+        ),
       },
       {
         value: 'coding-plan' as const,
@@ -388,7 +394,7 @@ export async function runInteractiveAuth() {
   if (choice === 'coding-plan') {
     await handleQwenAuth('coding-plan', {});
   } else {
-    await handleQwenAuth('qwen-oauth', {});
+    await handleQwenAuth('localhost-nexus-redirect', {});
   }
 }
 
@@ -410,7 +416,7 @@ export async function showAuthStatus(): Promise<void> {
       writeStdoutLine(t('Run one of the following commands to get started:\n'));
       writeStdoutLine(
         t(
-          '  qwen auth qwen-oauth     - Authenticate with Qwen OAuth (free tier)',
+          '  qwen auth localhost-nexus-redirect - Configure Localhost-Nexus-Redirect (local)',
         ),
       );
       writeStdoutLine(
@@ -426,11 +432,11 @@ export async function showAuthStatus(): Promise<void> {
     }
 
     // Display status based on auth type
-    if (selectedType === AuthType.QWEN_OAUTH) {
-      writeStdoutLine(t('✓ Authentication Method: Qwen OAuth'));
-      writeStdoutLine(t('  Type: Free tier (ending 2026-04-15)'));
-      writeStdoutLine(t('  Limit: 100 requests/day'));
-      writeStdoutLine(t('  Models: Qwen latest models\n'));
+    if (selectedType === AuthType.USE_LOCAL_NEXUS) {
+      writeStdoutLine(t('✓ Authentication Method: Localhost-Nexus-Redirect'));
+      writeStdoutLine(t('  Type: Fully local, sovereign'));
+      writeStdoutLine(t('  Endpoint: http://localhost:11434/v1'));
+      writeStdoutLine(t('  Models: Local inference server models\n'));
     } else if (selectedType === AuthType.USE_OPENAI) {
       // Check for Coding Plan configuration
       const codingPlanRegion = mergedSettings.codingPlan?.region;

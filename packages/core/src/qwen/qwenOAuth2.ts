@@ -539,7 +539,7 @@ export async function getQwenOAuthClient(
 
     if (options?.requireCachedCredentials) {
       throw new Error(
-        'Qwen OAuth credentials expired. Please use /auth to re-authenticate with qwen-oauth.',
+        'Qwen OAuth credentials expired. Please use /auth to re-authenticate with localhost-nexus-redirect.',
       );
     }
 

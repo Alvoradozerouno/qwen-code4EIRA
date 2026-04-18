@@ -306,7 +306,7 @@ export const DialogManager = ({
   if (uiState.isAuthenticating) {
     // OpenAI authentication now handled through AuthDialog with coding-plan/custom sub-modes
     // Qwen OAuth remains as a separate flow
-    if (uiState.pendingAuthType === AuthType.QWEN_OAUTH) {
+    if (uiState.pendingAuthType === AuthType.USE_LOCAL_NEXUS) {
       return (
         <QwenOAuthProgress
           deviceAuth={uiState.qwenAuthState.deviceAuth || undefined}

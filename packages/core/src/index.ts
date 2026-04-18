@@ -38,7 +38,7 @@ export {
   type ModelProvidersConfig,
   type ModelSwitchMetadata,
   type OnModelChangeCallback,
-  QWEN_OAUTH_MODELS,
+  LOCAL_NEXUS_MODELS,
   resolveModelConfig,
   type ResolvedModelConfig,
   validateModelConfig,

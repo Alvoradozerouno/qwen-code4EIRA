@@ -185,7 +185,7 @@ class QwenAgent implements Agent {
       });
     };
 
-    if (method === AuthType.QWEN_OAUTH) {
+    if (method === AuthType.USE_LOCAL_NEXUS) {
       qwenOAuth2Events.once(QwenOAuth2Event.AuthUri, authUriHandler);
     }
 
@@ -198,7 +198,7 @@ class QwenAgent implements Agent {
         method,
       );
     } finally {
-      if (method === AuthType.QWEN_OAUTH) {
+      if (method === AuthType.USE_LOCAL_NEXUS) {
         qwenOAuth2Events.off(QwenOAuth2Event.AuthUri, authUriHandler);
       }
     }
@@ -453,11 +453,11 @@ class QwenAgent implements Agent {
     const authMethods = buildAuthMethods();
     const errorMessage = this.extractErrorMessage(error);
     if (
-      errorMessage?.includes('qwen-oauth') ||
+      errorMessage?.includes('localhost-nexus-redirect') ||
       errorMessage?.includes('Qwen OAuth')
     ) {
       const qwenOAuthMethods = authMethods.filter(
-        (m) => m.id === AuthType.QWEN_OAUTH,
+        (m) => m.id === AuthType.USE_LOCAL_NEXUS,
       );
       return qwenOAuthMethods.length ? qwenOAuthMethods : authMethods;
     }

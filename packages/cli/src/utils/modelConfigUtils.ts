@@ -46,8 +46,8 @@ export interface ResolvedCliGenerationConfig {
 }
 
 export function getAuthTypeFromEnv(): AuthType | undefined {
-  if (process.env['QWEN_OAUTH']) {
-    return AuthType.QWEN_OAUTH;
+  if (process.env['LOCAL_NEXUS']) {
+    return AuthType.USE_LOCAL_NEXUS;
   }
 
   if (

@@ -109,7 +109,10 @@ export async function retryWithBackoff<T>(
       const errorStatus = getErrorStatus(error);
 
       // Check for Qwen OAuth quota exceeded error - throw immediately without retry
-      if (authType === AuthType.QWEN_OAUTH && isQwenQuotaExceededError(error)) {
+      if (
+        authType === AuthType.USE_LOCAL_NEXUS &&
+        isQwenQuotaExceededError(error)
+      ) {
         throw new Error(
           `Qwen OAuth free tier quota exceeded. Note: Qwen OAuth free tier will be discontinued on 2026-04-15.\n\n` +
             `To continue using Qwen Code, try one of these alternatives:\n` +

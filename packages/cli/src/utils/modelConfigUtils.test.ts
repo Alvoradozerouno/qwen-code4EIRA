@@ -63,10 +63,10 @@ describe('modelConfigUtils', () => {
       expect(getAuthTypeFromEnv()).toBeUndefined();
     });
 
-    it('should return QWEN_OAUTH when QWEN_OAUTH is set', () => {
-      process.env['QWEN_OAUTH'] = 'true';
+    it('should return USE_LOCAL_NEXUS when LOCAL_NEXUS is set', () => {
+      process.env['LOCAL_NEXUS'] = 'true';
 
-      expect(getAuthTypeFromEnv()).toBe(AuthType.QWEN_OAUTH);
+      expect(getAuthTypeFromEnv()).toBe(AuthType.USE_LOCAL_NEXUS);
     });
 
     it('should return USE_GEMINI when Gemini env vars are set', () => {
@@ -113,14 +113,14 @@ describe('modelConfigUtils', () => {
       expect(getAuthTypeFromEnv()).toBeUndefined();
     });
 
-    it('should prioritize QWEN_OAUTH over other auth types when explicitly set', () => {
-      process.env['QWEN_OAUTH'] = 'true';
+    it('should prioritize LOCAL_NEXUS over other auth types when explicitly set', () => {
+      process.env['LOCAL_NEXUS'] = 'true';
       process.env['OPENAI_API_KEY'] = 'test-key';
       process.env['OPENAI_MODEL'] = 'gpt-4';
       process.env['OPENAI_BASE_URL'] = 'https://api.openai.com';
 
-      // QWEN_OAUTH is checked first, so it should be returned even when other auth vars are set
-      expect(getAuthTypeFromEnv()).toBe(AuthType.QWEN_OAUTH);
+      // LOCAL_NEXUS is checked first, so it should be returned even when other auth vars are set
+      expect(getAuthTypeFromEnv()).toBe(AuthType.USE_LOCAL_NEXUS);
     });
 
     it('should return undefined when no auth env vars are set', () => {
