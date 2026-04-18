@@ -279,3 +279,12 @@ export {
   firePermissionRequestHook,
   type NotificationHookResult,
 } from './core/toolHookTriggers.js';
+
+// ============================================================================
+// PRAETOR — Physics Engine, Orch-OR, Nexus Point
+// ============================================================================
+
+export * from './physics/physics-types.js';
+export * from './physics/orch-or-engine.js';
+export * from './physics/physics-engine.js';
+export * from './kernel/nexus-point.js';
