@@ -279,3 +279,10 @@ export {
   firePermissionRequestHook,
   type NotificationHookResult,
 } from './core/toolHookTriggers.js';
+
+// ============================================================================
+// PRAETOR Physics & Nexus-Point (EIRA Time-Shift Experiment)
+// ============================================================================
+
+export * from './physics/physics-engine.js';
+export * from './kernel/nexus-point.js';

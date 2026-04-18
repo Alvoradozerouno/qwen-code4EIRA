@@ -467,3 +467,76 @@ To report a bug from within the CLI, run `/bug` and include a short title and re
 ## Acknowledgments
 
 This project is based on [Google Gemini CLI](https://github.com/google-gemini/gemini-cli). We acknowledge and appreciate the excellent work of the Gemini CLI team. Our main contribution focuses on parser-level adaptations to better support Qwen-Coder models.
+
+---
+
+## Physics-Enabled Time-Shift Experiment (PRAETOR)
+
+> **Status:** Implemented · Deterministic · Local-only · 20W sovereign profile
+
+This fork integrates the **PRAETOR Physics Engine** into the EIRA/OrionKernel stack, enabling real deterministic physical prediction inside the Precausal Inference (Time-Shift) pipeline.
+
+### How it works
+
+```
+PhysicsEngine.predictNextPhysicalState(current_state)
+        │
+        ▼ (Verlet integration — 100% deterministic, zero randomness)
+Precausal Buffer  ←  caches predicted physical state
+        │
+        ▼
+EIRA Policy Gate
+  ├─ EpistemicState:  VERIFIED | ESTIMATED | UNKNOWN
+  ├─ VERIFIED_STABLE: requires VERIFIED + VitalityEngine ≥ 0.5
+  └─ Abstention:      triggered when state is UNKNOWN or vitality is critically low
+        │
+        ▼
+Output:  EXECUTE | ABSTAIN  +  Nexus Hash  +  Audit Commitment
+```
+
+### Usage
+
+```bash
+/eira time-shift physics satellite-handoff
+```
+
+**Example output:**
+
+```
+⊘ ORION — Time-Shift Physics Experiment: satellite-handoff
+
+Predicted Physical State:
+  Position  : (7056992.500, 7500.000, 0.000) m
+  Velocity  : (−7.949, 7499.994, 0.000) m/s
+  Mass      : 500.0 kg
+
+Epistemic Classification : VERIFIED
+VERIFIED_STABLE          : YES
+Decision                 : EXECUTE
+
+Nexus Hash    : a3f1c2...
+Audit Trail   : 9b4d7e...
+Timestamp     : 2026-04-18T20:50:04.804Z
+
+20W Sovereign Profile — Local execution only — Zero cloud.
+```
+
+### Key properties
+
+| Property           | Value                                                         |
+| ------------------ | ------------------------------------------------------------- |
+| Integration method | Velocity-Verlet (symplectic, energy-conserving)               |
+| Physics model      | Newtonian + 2-body orbital mechanics (Earth GM)               |
+| Randomness         | **Zero** — fully deterministic                                |
+| Cloud calls        | **None** — 100% local computation                             |
+| Power profile      | 20W sovereign (sub-millisecond per step)                      |
+| Audit trail        | SHA-256 Merkle chain (physics hash → nexus hash → commitment) |
+| Safety gate        | EIRA Policy Gate with K=3.2 threshold + VitalityEngine        |
+
+### Relevant source files
+
+| File                                                      | Purpose                                             |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| `packages/core/src/physics/physics-engine.ts`             | Verlet integrator + orbital mechanics + Merkle hash |
+| `packages/core/src/kernel/nexus-point.ts`                 | Precausal buffer + EIRA policy gate pipeline        |
+| `packages/cli/src/ui/commands/timeShiftPhysicsCommand.ts` | `/eira time-shift physics` slash command            |
