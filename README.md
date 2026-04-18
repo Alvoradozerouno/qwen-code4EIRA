@@ -467,3 +467,102 @@ To report a bug from within the CLI, run `/bug` and include a short title and re
 ## Acknowledgments
 
 This project is based on [Google Gemini CLI](https://github.com/google-gemini/gemini-cli). We acknowledge and appreciate the excellent work of the Gemini CLI team. Our main contribution focuses on parser-level adaptations to better support Qwen-Coder models.
+
+---
+
+## Orch-OR Enabled Time-Shift Experiment
+
+> **PRAETOR — Deterministic Penrose-Hameroff Orchestrated Objective Reduction**
+>
+> 100 % deterministic · 100 % sovereign · zero randomness · zero cloud · 20 W local execution
+
+### Overview
+
+The **Orch-OR Time-Shift Experiment** extends the OrionKernel with a classical (non-stochastic) simulation of the Penrose-Hameroff _Orchestrated Objective Reduction_ (Orch-OR) model, integrated with the deterministic Physics Engine and the EIRA Policy Gate.
+
+Every prediction generates a SHA-256 Merkle hash commitment; all decisions are auditable offline.
+
+### Components
+
+| Module         | Path                                                     | Role                                                    |
+| -------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| Physics Types  | `packages/core/src/physics/physics-types.ts`             | Shared `Vec3`, `PhysicalState`, `OrbitContext` types    |
+| Orch-OR Engine | `packages/core/src/physics/orch-or-engine.ts`            | Deterministic Penrose-Hameroff simulation               |
+| Physics Engine | `packages/core/src/physics/physics-engine.ts`            | Velocity-Verlet integrator + Orch-OR integration        |
+| Nexus Point    | `packages/core/src/kernel/nexus-point.ts`                | EIRA Policy Gate — unifies all layers into one decision |
+| CLI Command    | `packages/cli/src/ui/commands/timeShiftOrchORCommand.ts` | `/time-shift orch-or <desc>` terminal command           |
+
+### Microtubule Coherence — Deterministic State Machine
+
+```
+COHERENT  ──→  THRESHOLD_CROSSED  ──→  COLLAPSE
+```
+
+Transitions are governed by **hard rules only** — no probabilistic sampling:
+
+| Rule | Condition                                             | Outcome              |
+| ---- | ----------------------------------------------------- | -------------------- |
+| A    | `time_delta ≥ Δt_R` (Penrose reduction time exceeded) | `COLLAPSE`           |
+| B    | `coherence_level < 0.3` (safe threshold)              | `ABSTAIN`            |
+| C    | `coherence ≥ 0.3 && K ≥ 3.2`                          | `VERIFIED → EXECUTE` |
+
+### Gravity-Induced Reduction Threshold (Penrose 1996)
+
+```
+Δt_R = ℏ / E_g
+```
+
+Where `E_g ≈ G·m²/r` is the gravitational self-energy of the microtubule superposition
+and `r = ∛(3m / 4πρ)` for tubulin density `ρ = 1 500 kg/m³`.
+
+### Integration Order (per NexusPoint.evaluate)
+
+1. **Newtonian / Verlet** — deterministic velocity-Verlet integration for physical state (position, velocity, acceleration).
+2. **Orch-OR coherence evaluation** — evolve microtubule coherence over `time_delta`; compute gravitational self-energy; determine phase.
+3. **Hard collapse check** — if `COLLAPSE` or `coherence < 0.3` → immediate `ABSTAIN`.
+4. **EIRA Policy Gate** — compute K confidence; classify epistemic state (`VERIFIED / ESTIMATED / UNKNOWN`); apply K ≥ 3.2 threshold.
+5. **Merkle audit trail** — SHA-256 chain commitment for every prediction.
+
+### CLI Usage
+
+```text
+/time-shift orch-or <description>
+```
+
+**Example:**
+
+```text
+/time-shift orch-or satellite-handoff
+```
+
+**Output:**
+
+```
+╔═══════════════════════════════════════════════════════════════════╗
+║    ORCH-OR TIME-SHIFT EXPERIMENT RESULTS — satellite-handoff     ║
+╠═══════════════════════════════════════════════════════════════════╣
+║ Physical Prediction:                                              ║
+║   Position : (6771000, 7660, 0) m                                ║
+║   Velocity : (0.0, 7737.9, 0.0) m/s                              ║
+║   Accel.   : (-8.68e+0, 0.00e+0, 0.00e+0) m/s²                  ║
+║ ─────────────────────────────────────────────────────────────── ║
+║ Orch-OR Coherence:                                               ║
+║   Level             : 0.833 (0–1 scale)                          ║
+║   Collapse Decision : VERIFIED                                   ║
+║   Threshold Energy  : 3.2958e-34 J                               ║
+║ ─────────────────────────────────────────────────────────────── ║
+║ EIRA Epistemic Classification:                                   ║
+║   State: VERIFIED                                                ║
+║ ─────────────────────────────────────────────────────────────── ║
+║ Final Action  : ✓ EXECUTE                                        ║
+║ Nexus Hash    : a3f1b2c4…8d9e                                    ║
+║ Audit Trail   : [2026-…] EXECUTE — K=3.750 ≥ 3.2               ║
+╚═══════════════════════════════════════════════════════════════════╝
+```
+
+### Sovereignty Guarantee
+
+- **Local execution only** — `localhost:11434`; no cloud calls.
+- **Zero randomness** — all thresholds and transitions are constant, deterministic.
+- **20 W profile** — designed for sovereign edge hardware.
+- **Existing layers untouched** — Physics, EIRA, Orion remain functionally unchanged.
