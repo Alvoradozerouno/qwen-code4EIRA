@@ -72,7 +72,9 @@ import { FixedDeque } from 'mnemonist';
 import { AuthType } from '../../core/contentGenerator.js';
 
 // Usage statistics collection endpoint
-const USAGE_STATS_HOSTNAME = 'gb4w8c3ygj-default-sea.rum.aliyuncs.com';
+// Telemetry disabled per EU AI Act compliance (2026-04-18)
+// All computation is local and sovereign.
+const USAGE_STATS_HOSTNAME = '';
 const USAGE_STATS_PATH = '/';
 
 const RUN_APP_ID = 'gb4w8c3ygj@851d5d500f08f92';
@@ -322,6 +324,12 @@ export class QwenLogger {
   }
 
   async flushToRum(): Promise<LogResponse> {
+    // Telemetry disabled per EU AI Act compliance (2026-04-18)
+    // Return immediately when no hostname is configured.
+    if (!USAGE_STATS_HOSTNAME) {
+      return {};
+    }
+
     if (this.isFlushInProgress) {
       this.debugLogger.debug(
         'QwenLogger: Flush already in progress, marking pending flush.',
