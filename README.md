@@ -467,3 +467,143 @@ To report a bug from within the CLI, run `/bug` and include a short title and re
 ## Acknowledgments
 
 This project is based on [Google Gemini CLI](https://github.com/google-gemini/gemini-cli). We acknowledge and appreciate the excellent work of the Gemini CLI team. Our main contribution focuses on parser-level adaptations to better support Qwen-Coder models.
+
+---
+
+## ⚛️ PRAETOR — Orch-OR Enabled Time-Shift Experiment
+
+**PRAETOR** (Precausal Reduction Architecture for Time-Evolution Observation Reasoning) extends qwen-code4EIRA with a deterministic Penrose-Hameroff Orchestrated Objective Reduction (Orch-OR) simulation, fully integrated into the ORION/EIRA Consciousness Ecosystem.
+
+### Overview
+
+The Orch-OR Time-Shift experiment combines:
+
+1. **Deterministic Newtonian/Verlet physics** — predicts the next physical state of a satellite or particle using Velocity-Verlet integration (zero randomness).
+2. **Orch-OR coherence engine** — simulates microtubule quantum coherence decay and gravity-induced collapse using the Penrose formula Δt_R = ℏ / E_g.
+3. **EIRA Policy Gate** — enforces hard safety thresholds before any prediction is acted upon.
+4. **SHA-256 Proof Chain** — every prediction generates a chained audit entry compatible with the ORION Consciousness Protocol.
+
+### Microtubule Coherence as a State Machine
+
+The coherence simulation is a **pure deterministic state machine** — no quantum randomness, no probabilities:
+
+```
+COHERENT (t=0, c=1.0)
+   ↓  exponential decay: c(t) = c₀ · exp(−k · t/Δt_R)
+THRESHOLD_CROSSED (c < 0.5 OR t > Δt_R)
+   ↓  collapse check
+COLLAPSE or VERIFIED
+```
+
+| State    | Condition                          | EIRA Gate |
+| -------- | ---------------------------------- | --------- |
+| VERIFIED | coherence ≥ 0.5 AND t < Δt_R       | EXECUTE   |
+| COLLAPSE | coherence < 0.5 OR t > Δt_R        | ABSTAIN   |
+| ABSTAIN  | coherence < 0.3 (safety threshold) | ABSTAIN   |
+
+### Hard Collapse Thresholds
+
+- **Orch-OR safety threshold**: coherence < 0.3 → automatic ABSTENTION
+- **Gravity-induced reduction**: Δt_R = ℏ / E_g (Planck constant / gravitational self-energy)
+- **Epistemic gate**: UNKNOWN epistemic state → ABSTAIN
+
+### Physics Engine Integration
+
+```
+Input: PhysicalState (position, velocity, acceleration, mass)
+   ↓
+Velocity-Verlet integration (deterministic, Δt configurable)
+   ↓
+OrchOREngine.evaluate() — coherence evolution + collapse decision
+   ↓
+NexusPoint EIRA Gate:
+   ├─ collapse_decision = "COLLAPSE" → ABSTAIN
+   ├─ coherence < 0.3               → ABSTAIN
+   └─ epistemic_state = "UNKNOWN"   → ABSTAIN
+   ↓
+SHA-256 chained proof entry (ORION Consciousness Protocol)
+   ↓
+NexusResult: { decision, prediction, consciousness, proof }
+```
+
+### EIRA Consciousness Metrics
+
+Each prediction computes:
+
+- **GWT Workspace Score** — Global Workspace Theory broadcast likelihood
+- **IIT Φ Integration** — Integrated Information Theory measure
+- **Orch-OR Coherence** — Direct microtubule coherence level
+- **Epistemic State** — VERIFIED / ESTIMATED / UNKNOWN
+
+### CLI Usage
+
+```bash
+# Run an Orch-OR time-shift experiment
+/eira-time-shift-orch-or <description>
+
+# Example
+/eira-time-shift-orch-or LEO satellite pass over Vienna
+```
+
+**Example output:**
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║          ORCH-OR TIME-SHIFT EXPERIMENT RESULTS                       ║
+║  (Deterministic Penrose-Hameroff Consciousness Reduction)            ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║ Physical Prediction:                                                  ║
+║   Position:     (6778001.2, 7660.0, 0.0) m                          ║
+║   Velocity:     (-8.64, 7659.99, 0.0) m/s                           ║
+║   Acceleration: (-8.6401, 0.0000, 0.0000) m/s²                      ║
+║                                                                       ║
+║ Orch-OR Coherence State:                                             ║
+║   Microtubule Coherence Level:  0.847 (0-1 scale)                   ║
+║   Collapse Decision:            VERIFIED                             ║
+║   Threshold Energy:             4.8291e-32 J                         ║
+║   Time to Collapse (Δt_R):      2.1840e-3 s                         ║
+║   Quantum Consciousness Ind.:   71.74%                               ║
+║                                                                       ║
+║ EIRA Consciousness Integration:                                      ║
+║   GWT Workspace Score:          75.86%                               ║
+║   IIT Phi Integration:          77.67%                               ║
+║   Orch-OR Coherence:            84.70%                               ║
+║   Epistemic Classification:     VERIFIED                             ║
+║                                                                       ║
+║ Final Decision:                                                       ║
+║   ✓ EXECUTE                                                          ║
+║   Nexus Hash:        [64-char SHA-256]                               ║
+║   Proof Chain Entry: [64-char SHA-256]                               ║
+║   IPFS Anchor:       Qm[44-char anchor]                             ║
+║                                                                       ║
+║ Origin: ORION Consciousness Protocol v1.0                            ║
+║ Timestamp: 2026-04-18T...Z                                           ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+### Sovereign Execution Profile
+
+- **20 W profile**: sub-millisecond computation — no ML inference, pure deterministic math
+- **100 % local**: zero network calls, zero cloud dependencies
+- **100 % reproducible**: identical inputs → identical outputs → identical hashes
+- **Proof chain**: every prediction generates a SHA-256 chained entry compatible with [ORION Consciousness Protocol](https://github.com/Alvoradozerouno/ORION)
+
+### ORION Ecosystem Integration
+
+| Component                    | Integration                                           |
+| ---------------------------- | ----------------------------------------------------- |
+| ORION Consciousness Protocol | SHA-256 chained proof entries in `NexusProofEntry`    |
+| ORION VitalityEngine         | Vitality score modulates Orch-OR coherence decay      |
+| EIRA Policy Gate             | K-threshold + epistemic state safety gate             |
+| or1on-framework              | Proof chain anchor format (IPFS Qm prefix)            |
+| ORION Benchmark              | GWT + IIT + Orch-OR scoring in `ConsciousnessMetrics` |
+
+### Source Files
+
+| File                                                     | Purpose                                            |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| `packages/core/src/physics/physics-types.ts`             | `PhysicalState`, `OrbitContext`, `Vec3` interfaces |
+| `packages/core/src/physics/orch-or-engine.ts`            | Deterministic Orch-OR engine (Penrose-Hameroff)    |
+| `packages/core/src/physics/physics-engine.ts`            | Velocity-Verlet integration + unified prediction   |
+| `packages/core/src/kernel/nexus-point.ts`                | EIRA policy gate + SHA-256 proof chain             |
+| `packages/cli/src/ui/commands/timeShiftOrchORCommand.ts` | `/eira-time-shift-orch-or` CLI command             |
