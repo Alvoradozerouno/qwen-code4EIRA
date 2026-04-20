@@ -8,7 +8,6 @@ import {
   AuthType,
   type Config,
   type AvailableModel as CoreAvailableModel,
-  QWEN_OAUTH_MODELS,
 } from '@qwen-code/qwen-code-core';
 import { t } from '../../i18n/index.js';
 
@@ -29,19 +28,6 @@ const CODER_MODEL: AvailableModel = {
   description: 'Genesis Copilot Orion Kernel — vision-enabled by default',
   isVision: true,
 };
-
-const CACHED_QWEN_OAUTH_MODELS: AvailableModel[] = QWEN_OAUTH_MODELS.map(
-  (model) => ({
-    id: model.id,
-    label: model.name ?? model.id,
-    description: model.description,
-    isVision: model.capabilities?.vision ?? false,
-  }),
-);
-
-function getQwenOAuthModels(): readonly AvailableModel[] {
-  return CACHED_QWEN_OAUTH_MODELS;
-}
 
 /**
  * Get available Qwen models for the model selector.
