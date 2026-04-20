@@ -19,6 +19,17 @@ export type AvailableModel = {
   isVision?: boolean;
 };
 
+/**
+ * The single canonical Qwen Copilot model exposed to the UI.
+ * coder-model has vision capabilities by default.
+ */
+const CODER_MODEL: AvailableModel = {
+  id: 'coder-model',
+  label: 'Orion Coder',
+  description: 'Genesis Copilot Orion Kernel — vision-enabled by default',
+  isVision: true,
+};
+
 const CACHED_QWEN_OAUTH_MODELS: AvailableModel[] = QWEN_OAUTH_MODELS.map(
   (model) => ({
     id: model.id,
@@ -33,11 +44,11 @@ function getQwenOAuthModels(): readonly AvailableModel[] {
 }
 
 /**
- * Get available Qwen models
- * coder-model now has vision capabilities by default.
+ * Get available Qwen models for the model selector.
+ * Returns only the single coder-model with vision capabilities.
  */
 export function getFilteredQwenModels(): AvailableModel[] {
-  return [...getQwenOAuthModels()];
+  return [CODER_MODEL];
 }
 
 /**
@@ -113,7 +124,7 @@ export function getAvailableModelsForAuthType(
   // Fall back to environment variables for specific auth types (no config provided)
   switch (authType) {
     case AuthType.QWEN_OAUTH: {
-      return [...getQwenOAuthModels()];
+      return [CODER_MODEL];
     }
     case AuthType.USE_OPENAI: {
       const openAIModel = getOpenAIAvailableModelFromEnv();
