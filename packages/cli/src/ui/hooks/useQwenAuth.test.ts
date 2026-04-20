@@ -66,7 +66,7 @@ describe('useQwenAuth', () => {
 
   it('should initialize with default state when Qwen auth but not authenticating', () => {
     const { result } = renderHook(() =>
-      useQwenAuth(AuthType.QWEN_OAUTH, false),
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, false),
     );
 
     expect(result.current.qwenAuthState).toEqual({
@@ -78,7 +78,7 @@ describe('useQwenAuth', () => {
   });
 
   it('should set up event listeners when Qwen auth and authenticating', () => {
-    renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    renderHook(() => useQwenAuth(AuthType.USE_LOCAL_NEXUS, true));
 
     expect(mockQwenOAuth2Events.on).toHaveBeenCalledWith(
       QwenOAuth2Event.AuthUri,
@@ -100,7 +100,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleDeviceAuth!(mockDeviceAuth);
@@ -123,7 +125,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleAuthProgress!('success', 'Authentication successful!');
@@ -148,7 +152,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleAuthProgress!('error', 'Authentication failed');
@@ -173,7 +179,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleAuthProgress!('polling', 'Waiting for user authorization...');
@@ -198,7 +206,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleAuthProgress!(
@@ -226,7 +236,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     act(() => {
       handleAuthProgress!('success');
@@ -242,7 +254,7 @@ describe('useQwenAuth', () => {
         useQwenAuth(pendingAuthType, isAuthenticating),
       {
         initialProps: {
-          pendingAuthType: AuthType.QWEN_OAUTH,
+          pendingAuthType: AuthType.USE_LOCAL_NEXUS,
           isAuthenticating: true,
         },
       },
@@ -264,7 +276,7 @@ describe('useQwenAuth', () => {
   it('should clean up event listeners when authentication stops', () => {
     const { rerender } = renderHook(
       ({ isAuthenticating }) =>
-        useQwenAuth(AuthType.QWEN_OAUTH, isAuthenticating),
+        useQwenAuth(AuthType.USE_LOCAL_NEXUS, isAuthenticating),
       { initialProps: { isAuthenticating: true } },
     );
 
@@ -283,7 +295,7 @@ describe('useQwenAuth', () => {
 
   it('should clean up event listeners on unmount', () => {
     const { unmount } = renderHook(() =>
-      useQwenAuth(AuthType.QWEN_OAUTH, true),
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
     );
 
     unmount();
@@ -313,7 +325,7 @@ describe('useQwenAuth', () => {
         useQwenAuth(pendingAuthType, isAuthenticating),
       {
         initialProps: {
-          pendingAuthType: AuthType.QWEN_OAUTH,
+          pendingAuthType: AuthType.USE_LOCAL_NEXUS,
           isAuthenticating: true,
         },
       },
@@ -347,7 +359,7 @@ describe('useQwenAuth', () => {
 
     const { result, rerender } = renderHook(
       ({ isAuthenticating }) =>
-        useQwenAuth(AuthType.QWEN_OAUTH, isAuthenticating),
+        useQwenAuth(AuthType.USE_LOCAL_NEXUS, isAuthenticating),
       { initialProps: { isAuthenticating: true } },
     );
 
@@ -377,7 +389,9 @@ describe('useQwenAuth', () => {
       return mockQwenOAuth2Events;
     });
 
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     // Set up some state
     act(() => {
@@ -399,7 +413,7 @@ describe('useQwenAuth', () => {
   it('should handle different auth types correctly', () => {
     // Test with Qwen OAuth - should set up event listeners when authenticating
     const { result: qwenResult } = renderHook(() =>
-      useQwenAuth(AuthType.QWEN_OAUTH, true),
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
     );
     expect(qwenResult.current.qwenAuthState.authStatus).toBe('idle');
     expect(mockQwenOAuth2Events.on).toHaveBeenCalled();
@@ -417,7 +431,9 @@ describe('useQwenAuth', () => {
   });
 
   it('should initialize with idle status when starting authentication with Qwen auth', () => {
-    const { result } = renderHook(() => useQwenAuth(AuthType.QWEN_OAUTH, true));
+    const { result } = renderHook(() =>
+      useQwenAuth(AuthType.USE_LOCAL_NEXUS, true),
+    );
 
     expect(result.current.qwenAuthState.authStatus).toBe('idle');
     expect(mockQwenOAuth2Events.on).toHaveBeenCalled();

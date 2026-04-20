@@ -79,10 +79,10 @@ describe('modelCommand', () => {
     });
   });
 
-  it('should return dialog action for QWEN_OAUTH auth type', async () => {
+  it('should return dialog action for USE_LOCAL_NEXUS auth type', async () => {
     const mockConfig = createMockConfig({
       model: 'test-model',
-      authType: AuthType.QWEN_OAUTH,
+      authType: AuthType.USE_LOCAL_NEXUS,
     });
     mockContext.services.config = mockConfig as Config;
 

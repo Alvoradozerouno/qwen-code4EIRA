@@ -34,7 +34,7 @@ export interface WebSearchConfig {
  *
  * @param argv - Command line arguments
  * @param settings - User settings from settings.json
- * @param authType - Authentication type (e.g., 'qwen-oauth')
+ * @param authType - Authentication type (e.g., 'localhost-nexus-redirect')
  * @returns WebSearch configuration or undefined if no providers available
  */
 export function buildWebSearchConfig(
@@ -42,7 +42,7 @@ export function buildWebSearchConfig(
   settings: Settings,
   authType?: string,
 ): WebSearchConfig | undefined {
-  const isQwenOAuth = authType === AuthType.QWEN_OAUTH;
+  const isQwenOAuth = authType === AuthType.USE_LOCAL_NEXUS;
 
   // Step 1: Collect providers from settings or command line/env
   let providers: WebSearchProviderConfig[] = [];
@@ -77,7 +77,7 @@ export function buildWebSearchConfig(
     }
   }
 
-  // Step 2: Ensure dashscope is available for qwen-oauth users
+  // Step 2: Ensure dashscope is available for localhost-nexus-redirect users
   if (isQwenOAuth) {
     const hasDashscope = providers.some((p) => p.type === 'dashscope');
     if (!hasDashscope) {

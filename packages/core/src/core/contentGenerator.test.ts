@@ -88,23 +88,31 @@ describe('createContentGeneratorConfig', () => {
     getProxy: () => undefined,
   } as unknown as Config;
 
-  it('should preserve provided fields and set authType for QWEN_OAUTH', () => {
-    const cfg = createContentGeneratorConfig(mockConfig, AuthType.QWEN_OAUTH, {
-      model: 'coder-model',
-      apiKey: 'QWEN_OAUTH_DYNAMIC_TOKEN',
-    });
-    expect(cfg.authType).toBe(AuthType.QWEN_OAUTH);
+  it('should preserve provided fields and set authType for USE_LOCAL_NEXUS', () => {
+    const cfg = createContentGeneratorConfig(
+      mockConfig,
+      AuthType.USE_LOCAL_NEXUS,
+      {
+        model: 'coder-model',
+        apiKey: 'LOCAL_NEXUS_DYNAMIC_TOKEN',
+      },
+    );
+    expect(cfg.authType).toBe(AuthType.USE_LOCAL_NEXUS);
     expect(cfg.model).toBe('coder-model');
-    expect(cfg.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
+    expect(cfg.apiKey).toBe('LOCAL_NEXUS_DYNAMIC_TOKEN');
   });
 
-  it('should not warn or fallback for QWEN_OAUTH (resolution handled by ModelConfigResolver)', () => {
+  it('should not warn or fallback for USE_LOCAL_NEXUS (resolution handled by ModelConfigResolver)', () => {
     const warnSpy = vi
       .spyOn(console, 'warn')
       .mockImplementation(() => undefined);
-    const cfg = createContentGeneratorConfig(mockConfig, AuthType.QWEN_OAUTH, {
-      model: 'some-random-model',
-    });
+    const cfg = createContentGeneratorConfig(
+      mockConfig,
+      AuthType.USE_LOCAL_NEXUS,
+      {
+        model: 'some-random-model',
+      },
+    );
     expect(cfg.model).toBe('some-random-model');
     expect(cfg.apiKey).toBeUndefined();
     expect(warnSpy).not.toHaveBeenCalled();

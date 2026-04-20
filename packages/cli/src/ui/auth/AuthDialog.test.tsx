@@ -269,9 +269,9 @@ describe('AuthDialog', () => {
 
   describe('QWEN_DEFAULT_AUTH_TYPE environment variable', () => {
     it('should select the auth type specified by QWEN_DEFAULT_AUTH_TYPE', () => {
-      // QWEN_OAUTH is the only valid AuthType that can be selected via env var
+      // USE_LOCAL_NEXUS is the only valid AuthType that can be selected via env var
       // API-KEY is not an AuthType enum value, so it cannot be selected this way
-      process.env['QWEN_DEFAULT_AUTH_TYPE'] = AuthType.QWEN_OAUTH;
+      process.env['QWEN_DEFAULT_AUTH_TYPE'] = AuthType.USE_LOCAL_NEXUS;
 
       const settings: LoadedSettings = new LoadedSettings(
         {
@@ -308,7 +308,7 @@ describe('AuthDialog', () => {
 
       const { lastFrame } = renderAuthDialog(settings);
 
-      // QWEN_OAUTH is the first option, so it should be selected
+      // USE_LOCAL_NEXUS is the first option, so it should be selected
       expect(lastFrame()).toContain('Orion Kernel');
     });
 

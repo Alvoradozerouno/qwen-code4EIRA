@@ -34,7 +34,7 @@ export const useQwenAuth = (
     authMessage: null,
   });
 
-  const isQwenAuth = pendingAuthType === AuthType.QWEN_OAUTH;
+  const isQwenAuth = pendingAuthType === AuthType.USE_LOCAL_NEXUS;
 
   // Set up event listeners when authentication starts
   useEffect(() => {

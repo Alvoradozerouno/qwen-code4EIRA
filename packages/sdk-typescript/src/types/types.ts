@@ -418,9 +418,9 @@ export interface QueryOptions {
   /**
    * Authentication type for the AI service.
    * - 'openai': Use OpenAI-compatible authentication
-   * - 'qwen-oauth': Use Qwen OAuth authentication
+   * - 'localhost-nexus-redirect': Use Qwen OAuth authentication
    *
-   * Though we support 'qwen-oauth', it's not recommended to use it in the SDK.
+   * Though we support 'localhost-nexus-redirect', it's not recommended to use it in the SDK.
    * Because the credentials are stored in `~/.qwen` and may need to refresh periodically.
    */
   authType?: AuthType;

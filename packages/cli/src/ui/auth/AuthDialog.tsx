@@ -43,7 +43,7 @@ function parseDefaultAuthType(
 }
 
 // Main menu option type
-type MainOption = typeof AuthType.QWEN_OAUTH | 'CODING_PLAN' | 'API_KEY';
+type MainOption = typeof AuthType.USE_LOCAL_NEXUS | 'CODING_PLAN' | 'API_KEY';
 type ApiKeyOption = 'ALIBABA_STANDARD_API_KEY' | 'CUSTOM_API_KEY';
 
 // View level for navigation
@@ -103,11 +103,11 @@ export function AuthDialog(): React.JSX.Element {
   // Main authentication entries (flat three-option layout)
   const mainItems = [
     {
-      key: AuthType.QWEN_OAUTH,
+      key: AuthType.USE_LOCAL_NEXUS,
       title: t('Orion Kernel'),
       label: t('Orion Kernel'),
       description: t('OpenRouter-powered Orion Kernel'),
-      value: AuthType.QWEN_OAUTH as MainOption,
+      value: AuthType.USE_LOCAL_NEXUS as MainOption,
     },
     {
       key: 'CODING_PLAN',
@@ -222,7 +222,7 @@ export function AuthDialog(): React.JSX.Element {
   ];
 
   // Map an AuthType to the corresponding main menu option.
-  // QWEN_OAUTH maps directly; USE_OPENAI maps to:
+  // USE_LOCAL_NEXUS maps directly; USE_OPENAI maps to:
   // - CODING_PLAN when current config matches coding plan
   // - API_KEY for other OpenAI / Anthropic / Gemini-compatible configs
   const contentGenConfig = config.getContentGeneratorConfig();
@@ -232,7 +232,7 @@ export function AuthDialog(): React.JSX.Element {
       contentGenConfig?.apiKeyEnvKey,
     ) !== false;
   const authTypeToMainOption = (authType: AuthType): MainOption => {
-    if (authType === AuthType.QWEN_OAUTH) return AuthType.QWEN_OAUTH;
+    if (authType === AuthType.USE_LOCAL_NEXUS) return AuthType.USE_LOCAL_NEXUS;
     if (authType === AuthType.USE_OPENAI && isCurrentlyCodingPlan) {
       return 'CODING_PLAN';
     }
@@ -261,8 +261,8 @@ export function AuthDialog(): React.JSX.Element {
         return item.value === authTypeToMainOption(defaultAuthType);
       }
 
-      // Priority 4: default to QWEN_OAUTH
-      return item.value === AuthType.QWEN_OAUTH;
+      // Priority 4: default to USE_LOCAL_NEXUS
+      return item.value === AuthType.USE_LOCAL_NEXUS;
     }),
   );
 

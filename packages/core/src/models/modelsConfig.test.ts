@@ -447,20 +447,20 @@ describe('ModelsConfig', () => {
   it('should always force Qwen OAuth apiKey placeholder when applying model defaults', async () => {
     // Simulate a stale/explicit apiKey existing before switching models.
     const modelsConfig = new ModelsConfig({
-      initialAuthType: AuthType.QWEN_OAUTH,
+      initialAuthType: AuthType.USE_LOCAL_NEXUS,
       generationConfig: {
         apiKey: 'manual-key-should-not-leak',
       },
     });
 
-    // Switching within qwen-oauth triggers applyResolvedModelDefaults().
+    // Switching within localhost-nexus-redirect triggers applyResolvedModelDefaults().
     await modelsConfig.switchModel(
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
       'qwen/qwen3-235b-a22b:free',
     );
 
     const gc = currentGenerationConfig(modelsConfig);
-    expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
+    expect(gc.apiKey).toBe('LOCAL_NEXUS_DYNAMIC_TOKEN');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
 
@@ -505,13 +505,13 @@ describe('ModelsConfig', () => {
 
     // Config.refreshAuth passes modelId from modelsConfig.getModel(), which falls back to DEFAULT_QWEN_MODEL.
     modelsConfig.syncAfterAuthRefresh(
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
       modelsConfig.getModel(),
     );
 
     const gc = currentGenerationConfig(modelsConfig);
     expect(gc.model).toBe('qwen/qwen3-235b-a22b:free');
-    expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
+    expect(gc.apiKey).toBe('LOCAL_NEXUS_DYNAMIC_TOKEN');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
 
@@ -525,19 +525,19 @@ describe('ModelsConfig', () => {
       },
     });
 
-    // User switches to qwen-oauth via AuthDialog
+    // User switches to localhost-nexus-redirect via AuthDialog
     // refreshAuth calls syncAfterAuthRefresh with the current model (gpt-4o)
-    // which doesn't exist in qwen-oauth registry, so it should use default
-    modelsConfig.syncAfterAuthRefresh(AuthType.QWEN_OAUTH, 'gpt-4o');
+    // which doesn't exist in localhost-nexus-redirect registry, so it should use default
+    modelsConfig.syncAfterAuthRefresh(AuthType.USE_LOCAL_NEXUS, 'gpt-4o');
 
     const gc = currentGenerationConfig(modelsConfig);
-    // Should use default qwen-oauth model, not the OPENAI model
+    // Should use default localhost-nexus-redirect model, not the OPENAI model
     expect(gc.model).toBe('qwen/qwen3-235b-a22b:free');
-    expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
+    expect(gc.apiKey).toBe('LOCAL_NEXUS_DYNAMIC_TOKEN');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
 
-  it('should clear manual credentials when switching from USE_OPENAI to QWEN_OAUTH', () => {
+  it('should clear manual credentials when switching from USE_OPENAI to USE_LOCAL_NEXUS', () => {
     // User manually set credentials for OpenAI
     const modelsConfig = new ModelsConfig({
       initialAuthType: AuthType.USE_OPENAI,
@@ -555,17 +555,17 @@ describe('ModelsConfig', () => {
       model: 'gpt-4o',
     });
 
-    // User switches to qwen-oauth
+    // User switches to localhost-nexus-redirect
     // Since authType is not USE_OPENAI, manual credentials should be cleared
-    // and default qwen-oauth model should be applied
-    modelsConfig.syncAfterAuthRefresh(AuthType.QWEN_OAUTH, 'gpt-4o');
+    // and default localhost-nexus-redirect model should be applied
+    modelsConfig.syncAfterAuthRefresh(AuthType.USE_LOCAL_NEXUS, 'gpt-4o');
 
     const gc = currentGenerationConfig(modelsConfig);
-    // Should use default qwen-oauth model, not preserve manual OpenAI credentials
+    // Should use default localhost-nexus-redirect model, not preserve manual OpenAI credentials
     expect(gc.model).toBe('qwen/qwen3-235b-a22b:free');
-    expect(gc.apiKey).toBe('QWEN_OAUTH_DYNAMIC_TOKEN');
-    // baseUrl should be set to qwen-oauth default, not preserved from manual OpenAI config
-    expect(gc.baseUrl).toBe('https://openrouter.ai/api/v1');
+    expect(gc.apiKey).toBe('LOCAL_NEXUS_DYNAMIC_TOKEN');
+    // baseUrl should be set to localhost-nexus-redirect default, not preserved from manual OpenAI config
+    expect(gc.baseUrl).toBe('http://localhost:11434/v1');
     expect(gc.apiKeyEnvKey).toBeUndefined();
   });
 
@@ -718,7 +718,7 @@ describe('ModelsConfig', () => {
   });
 
   describe('getAllConfiguredModels', () => {
-    it('should return all models across all authTypes and put qwen-oauth first', () => {
+    it('should return all models across all authTypes and put localhost-nexus-redirect first', () => {
       const modelProvidersConfig: ModelProvidersConfig = {
         openai: [
           {
@@ -758,25 +758,25 @@ describe('ModelsConfig', () => {
 
       const allModels = modelsConfig.getAllConfiguredModels();
 
-      // qwen-oauth models should be ordered first
+      // localhost-nexus-redirect models should be ordered first
       const firstNonQwenIndex = allModels.findIndex(
-        (m) => m.authType !== AuthType.QWEN_OAUTH,
+        (m) => m.authType !== AuthType.USE_LOCAL_NEXUS,
       );
       expect(firstNonQwenIndex).toBeGreaterThan(0);
       expect(
         allModels
           .slice(0, firstNonQwenIndex)
-          .every((m) => m.authType === AuthType.QWEN_OAUTH),
+          .every((m) => m.authType === AuthType.USE_LOCAL_NEXUS),
       ).toBe(true);
       expect(
         allModels
           .slice(firstNonQwenIndex)
-          .every((m) => m.authType !== AuthType.QWEN_OAUTH),
+          .every((m) => m.authType !== AuthType.USE_LOCAL_NEXUS),
       ).toBe(true);
 
-      // Should include qwen-oauth models (hard-coded)
+      // Should include localhost-nexus-redirect models (hard-coded)
       const qwenModels = allModels.filter(
-        (m) => m.authType === AuthType.QWEN_OAUTH,
+        (m) => m.authType === AuthType.USE_LOCAL_NEXUS,
       );
       expect(qwenModels.length).toBeGreaterThan(0);
 
@@ -808,10 +808,10 @@ describe('ModelsConfig', () => {
 
       const allModels = modelsConfig.getAllConfiguredModels();
 
-      // Should still include qwen-oauth models (hard-coded)
+      // Should still include localhost-nexus-redirect models (hard-coded)
       expect(allModels.length).toBeGreaterThan(0);
       const qwenModels = allModels.filter(
-        (m) => m.authType === AuthType.QWEN_OAUTH,
+        (m) => m.authType === AuthType.USE_LOCAL_NEXUS,
       );
       expect(qwenModels.length).toBeGreaterThan(0);
     });
@@ -848,7 +848,7 @@ describe('ModelsConfig', () => {
       expect(testModel?.capabilities?.vision).toBe(true);
     });
 
-    it('should support filtering by authTypes and still put qwen-oauth first when included', () => {
+    it('should support filtering by authTypes and still put localhost-nexus-redirect first when included', () => {
       const modelProvidersConfig: ModelProvidersConfig = {
         openai: [
           {
@@ -872,7 +872,7 @@ describe('ModelsConfig', () => {
         modelProvidersConfig,
       });
 
-      // Filter: OpenAI only (should not include qwen-oauth)
+      // Filter: OpenAI only (should not include localhost-nexus-redirect)
       const openaiOnly = modelsConfig.getAllConfiguredModels([
         AuthType.USE_OPENAI,
       ]);
@@ -881,21 +881,21 @@ describe('ModelsConfig', () => {
       );
       expect(openaiOnly.map((m) => m.id)).toContain('openai-model-1');
 
-      // Filter: include qwen-oauth but request it later -> still ordered first
+      // Filter: include localhost-nexus-redirect but request it later -> still ordered first
       const withQwen = modelsConfig.getAllConfiguredModels([
         AuthType.USE_OPENAI,
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
         AuthType.USE_ANTHROPIC,
       ]);
       expect(withQwen.length).toBeGreaterThan(0);
       const firstNonQwenIndex = withQwen.findIndex(
-        (m) => m.authType !== AuthType.QWEN_OAUTH,
+        (m) => m.authType !== AuthType.USE_LOCAL_NEXUS,
       );
       expect(firstNonQwenIndex).toBeGreaterThan(0);
       expect(
         withQwen
           .slice(0, firstNonQwenIndex)
-          .every((m) => m.authType === AuthType.QWEN_OAUTH),
+          .every((m) => m.authType === AuthType.USE_LOCAL_NEXUS),
       ).toBe(true);
     });
   });
@@ -1392,18 +1392,20 @@ describe('ModelsConfig', () => {
       expect(
         modelsConfig
           .getAllConfiguredModels()
-          .filter((m) => m.authType !== 'qwen-oauth').length,
+          .filter((m) => m.authType !== 'localhost-nexus-redirect').length,
       ).toBeGreaterThan(0);
 
       // Reload with empty config
       modelsConfig.reloadModelProvidersConfig({});
 
-      // Only qwen-oauth models should remain
+      // Only localhost-nexus-redirect models should remain
       const models = modelsConfig.getAllConfiguredModels();
-      expect(models.every((m) => m.authType === 'qwen-oauth')).toBe(true);
+      expect(
+        models.every((m) => m.authType === 'localhost-nexus-redirect'),
+      ).toBe(true);
     });
 
-    it('should preserve qwen-oauth models after reload', () => {
+    it('should preserve localhost-nexus-redirect models after reload', () => {
       const modelsConfig = new ModelsConfig({
         modelProvidersConfig: {
           openai: [{ id: 'gpt-4', name: 'GPT-4' }],
@@ -1412,16 +1414,16 @@ describe('ModelsConfig', () => {
 
       const initialQwenModels = modelsConfig
         .getAllConfiguredModels()
-        .filter((m) => m.authType === 'qwen-oauth');
+        .filter((m) => m.authType === 'localhost-nexus-redirect');
 
       modelsConfig.reloadModelProvidersConfig({
         gemini: [{ id: 'gemini-pro', name: 'Gemini Pro' }],
       });
 
-      // qwen-oauth models should still exist
+      // localhost-nexus-redirect models should still exist
       const qwenModelsAfterReload = modelsConfig
         .getAllConfiguredModels()
-        .filter((m) => m.authType === 'qwen-oauth');
+        .filter((m) => m.authType === 'localhost-nexus-redirect');
       expect(qwenModelsAfterReload.length).toBe(initialQwenModels.length);
     });
 

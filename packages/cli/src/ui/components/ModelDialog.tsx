@@ -162,9 +162,9 @@ export function ModelDialog({
       modelsByAuthTypeMap.get(authType)!.push(model);
     }
 
-    // Fixed order: qwen-oauth first, then others in a stable order
+    // Fixed order: localhost-nexus-redirect first, then others in a stable order
     const authTypeOrder: AuthType[] = [
-      AuthType.QWEN_OAUTH,
+      AuthType.USE_LOCAL_NEXUS,
       AuthType.USE_OPENAI,
       AuthType.USE_ANTHROPIC,
       AuthType.USE_GEMINI,
@@ -364,7 +364,7 @@ export function ModelDialog({
           selectedAuthType,
           modelId,
           selectedAuthType !== authType &&
-            selectedAuthType === AuthType.QWEN_OAUTH
+            selectedAuthType === AuthType.USE_LOCAL_NEXUS
             ? { requireCachedCredentials: true }
             : undefined,
         );
@@ -471,7 +471,7 @@ export function ModelDialog({
               highlightedEntry.model.contextWindowSize,
             )}
           />
-          {highlightedEntry.authType !== AuthType.QWEN_OAUTH && (
+          {highlightedEntry.authType !== AuthType.USE_LOCAL_NEXUS && (
             <>
               <DetailRow
                 label="Base URL"

@@ -14,8 +14,8 @@ import {
 
 describe('acpModelUtils', () => {
   it('formats modelId(authType)', () => {
-    expect(formatAcpModelId('qwen3', AuthType.QWEN_OAUTH)).toBe(
-      `qwen3(${AuthType.QWEN_OAUTH})`,
+    expect(formatAcpModelId('qwen3', AuthType.USE_LOCAL_NEXUS)).toBe(
+      `qwen3(${AuthType.USE_LOCAL_NEXUS})`,
     );
   });
 

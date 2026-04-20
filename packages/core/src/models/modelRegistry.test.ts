@@ -5,25 +5,27 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ModelRegistry, QWEN_OAUTH_MODELS } from './modelRegistry.js';
+import { ModelRegistry, LOCAL_NEXUS_MODELS } from './modelRegistry.js';
 import { AuthType } from '../core/contentGenerator.js';
 import type { ModelProvidersConfig } from './types.js';
 
 describe('ModelRegistry', () => {
   describe('initialization', () => {
-    it('should always include hard-coded qwen-oauth models', () => {
+    it('should always include hard-coded localhost-nexus-redirect models', () => {
       const registry = new ModelRegistry();
 
-      const qwenModels = registry.getModelsForAuthType(AuthType.QWEN_OAUTH);
-      expect(qwenModels.length).toBe(QWEN_OAUTH_MODELS.length);
+      const qwenModels = registry.getModelsForAuthType(
+        AuthType.USE_LOCAL_NEXUS,
+      );
+      expect(qwenModels.length).toBe(LOCAL_NEXUS_MODELS.length);
       expect(qwenModels[0].id).toBe('qwen/qwen3-235b-a22b:free');
     });
 
     it('should initialize with empty config', () => {
       const registry = new ModelRegistry();
-      expect(registry.getModelsForAuthType(AuthType.QWEN_OAUTH).length).toBe(
-        QWEN_OAUTH_MODELS.length,
-      );
+      expect(
+        registry.getModelsForAuthType(AuthType.USE_LOCAL_NEXUS).length,
+      ).toBe(LOCAL_NEXUS_MODELS.length);
       expect(registry.getModelsForAuthType(AuthType.USE_OPENAI).length).toBe(0);
     });
 
@@ -45,9 +47,9 @@ describe('ModelRegistry', () => {
       expect(openaiModels[0].id).toBe('gpt-4-turbo');
     });
 
-    it('should ignore qwen-oauth models in config (hard-coded)', () => {
+    it('should ignore localhost-nexus-redirect models in config (hard-coded)', () => {
       const modelProvidersConfig: ModelProvidersConfig = {
-        'qwen-oauth': [
+        'localhost-nexus-redirect': [
           {
             id: 'custom-qwen',
             name: 'Custom Qwen',
@@ -57,9 +59,11 @@ describe('ModelRegistry', () => {
 
       const registry = new ModelRegistry(modelProvidersConfig);
 
-      // Should still use hard-coded qwen-oauth models
-      const qwenModels = registry.getModelsForAuthType(AuthType.QWEN_OAUTH);
-      expect(qwenModels.length).toBe(QWEN_OAUTH_MODELS.length);
+      // Should still use hard-coded localhost-nexus-redirect models
+      const qwenModels = registry.getModelsForAuthType(
+        AuthType.USE_LOCAL_NEXUS,
+      );
+      expect(qwenModels.length).toBe(LOCAL_NEXUS_MODELS.length);
       expect(qwenModels.find((m) => m.id === 'custom-qwen')).toBeUndefined();
     });
   });
@@ -187,10 +191,10 @@ describe('ModelRegistry', () => {
   });
 
   describe('getDefaultModelForAuthType', () => {
-    it('should return default Orion model for qwen-oauth', () => {
+    it('should return default Orion model for localhost-nexus-redirect', () => {
       const registry = new ModelRegistry();
       const defaultModel = registry.getDefaultModelForAuthType(
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
       );
       expect(defaultModel?.id).toBe('qwen/qwen3-235b-a22b:free');
     });
@@ -222,13 +226,13 @@ describe('ModelRegistry', () => {
   });
 
   describe('default base URLs', () => {
-    it('should apply default dashscope URL for qwen-oauth', () => {
+    it('should apply default localhost URL for localhost-nexus-redirect', () => {
       const registry = new ModelRegistry();
       const model = registry.getModel(
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
         'qwen/qwen3-235b-a22b:free',
       );
-      expect(model?.baseUrl).toBe('https://openrouter.ai/api/v1');
+      expect(model?.baseUrl).toBe('http://localhost:11434/v1');
     });
 
     it('should apply default openai URL when not specified', () => {
@@ -407,25 +411,28 @@ describe('ModelRegistry', () => {
       expect(registry.getModel(AuthType.USE_OPENAI, 'gpt-3.5')).toBeDefined();
     });
 
-    it('should preserve hard-coded qwen-oauth models after reload', () => {
+    it('should preserve hard-coded localhost-nexus-redirect models after reload', () => {
       const registry = new ModelRegistry({
         openai: [{ id: 'gpt-4', name: 'GPT-4' }],
       });
 
-      expect(registry.getModelsForAuthType(AuthType.QWEN_OAUTH).length).toBe(
-        QWEN_OAUTH_MODELS.length,
-      );
+      expect(
+        registry.getModelsForAuthType(AuthType.USE_LOCAL_NEXUS).length,
+      ).toBe(LOCAL_NEXUS_MODELS.length);
 
       registry.reloadModels({
         openai: [{ id: 'gpt-3.5', name: 'GPT-3.5' }],
       });
 
-      // qwen-oauth models should still exist
-      expect(registry.getModelsForAuthType(AuthType.QWEN_OAUTH).length).toBe(
-        QWEN_OAUTH_MODELS.length,
-      );
+      // localhost-nexus-redirect models should still exist
       expect(
-        registry.getModel(AuthType.QWEN_OAUTH, 'qwen/qwen3-235b-a22b:free'),
+        registry.getModelsForAuthType(AuthType.USE_LOCAL_NEXUS).length,
+      ).toBe(LOCAL_NEXUS_MODELS.length);
+      expect(
+        registry.getModel(
+          AuthType.USE_LOCAL_NEXUS,
+          'qwen/qwen3-235b-a22b:free',
+        ),
       ).toBeDefined();
     });
 
@@ -444,22 +451,26 @@ describe('ModelRegistry', () => {
       expect(registry.getModelsForAuthType(AuthType.USE_OPENAI).length).toBe(0);
       expect(registry.getModelsForAuthType(AuthType.USE_GEMINI).length).toBe(0);
 
-      // qwen-oauth models should still exist
-      expect(registry.getModelsForAuthType(AuthType.QWEN_OAUTH).length).toBe(
-        QWEN_OAUTH_MODELS.length,
-      );
+      // localhost-nexus-redirect models should still exist
+      expect(
+        registry.getModelsForAuthType(AuthType.USE_LOCAL_NEXUS).length,
+      ).toBe(LOCAL_NEXUS_MODELS.length);
     });
 
-    it('should ignore qwen-oauth models in reload config', () => {
+    it('should ignore localhost-nexus-redirect models in reload config', () => {
       const registry = new ModelRegistry();
 
       registry.reloadModels({
-        'qwen-oauth': [{ id: 'custom-qwen', name: 'Custom Qwen' }],
+        'localhost-nexus-redirect': [
+          { id: 'custom-qwen', name: 'Custom Qwen' },
+        ],
       });
 
-      // qwen-oauth should still use hard-coded models
-      const qwenModels = registry.getModelsForAuthType(AuthType.QWEN_OAUTH);
-      expect(qwenModels.length).toBe(QWEN_OAUTH_MODELS.length);
+      // localhost-nexus-redirect should still use hard-coded models
+      const qwenModels = registry.getModelsForAuthType(
+        AuthType.USE_LOCAL_NEXUS,
+      );
+      expect(qwenModels.length).toBe(LOCAL_NEXUS_MODELS.length);
       expect(qwenModels.find((m) => m.id === 'custom-qwen')).toBeUndefined();
     });
 
@@ -510,10 +521,10 @@ describe('ModelRegistry', () => {
 
       // All user-configured models should be cleared
       expect(registry.getModelsForAuthType(AuthType.USE_OPENAI).length).toBe(0);
-      // qwen-oauth models should still exist
-      expect(registry.getModelsForAuthType(AuthType.QWEN_OAUTH).length).toBe(
-        QWEN_OAUTH_MODELS.length,
-      );
+      // localhost-nexus-redirect models should still exist
+      expect(
+        registry.getModelsForAuthType(AuthType.USE_LOCAL_NEXUS).length,
+      ).toBe(LOCAL_NEXUS_MODELS.length);
     });
 
     it('should apply duplicate model id handling during reload', () => {

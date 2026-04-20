@@ -146,7 +146,7 @@ describe('modelConfigResolver', () => {
     describe('Qwen OAuth auth type', () => {
       it('uses default model for Qwen OAuth', () => {
         const result = resolveModelConfig({
-          authType: AuthType.QWEN_OAUTH,
+          authType: AuthType.USE_LOCAL_NEXUS,
           cli: {},
           settings: {},
           env: {},
@@ -160,7 +160,7 @@ describe('modelConfigResolver', () => {
 
       it('allows Orion default model for Qwen OAuth', () => {
         const result = resolveModelConfig({
-          authType: AuthType.QWEN_OAUTH,
+          authType: AuthType.USE_LOCAL_NEXUS,
           cli: {
             model: 'qwen/qwen3-235b-a22b:free',
           },
@@ -174,7 +174,7 @@ describe('modelConfigResolver', () => {
 
       it('warns and falls back for unsupported Qwen OAuth models', () => {
         const result = resolveModelConfig({
-          authType: AuthType.QWEN_OAUTH,
+          authType: AuthType.USE_LOCAL_NEXUS,
           cli: {
             model: 'unsupported-model',
           },
@@ -314,9 +314,9 @@ describe('modelConfigResolver', () => {
 
     it('always passes for Qwen OAuth', () => {
       const result = validateModelConfig({
-        authType: AuthType.QWEN_OAUTH,
+        authType: AuthType.USE_LOCAL_NEXUS,
         model: DEFAULT_QWEN_MODEL,
-        apiKey: 'QWEN_OAUTH_DYNAMIC_TOKEN',
+        apiKey: 'LOCAL_NEXUS_DYNAMIC_TOKEN',
       });
 
       expect(result.valid).toBe(true);

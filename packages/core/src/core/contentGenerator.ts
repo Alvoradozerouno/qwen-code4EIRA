@@ -54,7 +54,7 @@ export interface ContentGenerator {
 
 export enum AuthType {
   USE_OPENAI = 'openai',
-  QWEN_OAUTH = 'qwen-oauth',
+  USE_LOCAL_NEXUS = 'localhost-nexus-redirect',
   USE_GEMINI = 'gemini',
   USE_VERTEX_AI = 'vertex-ai',
   USE_ANTHROPIC = 'anthropic',
@@ -221,8 +221,8 @@ export function validateModelConfig(
 ): ModelConfigValidationResult {
   const errors: Error[] = [];
 
-  // Qwen OAuth doesn't need validation - it uses dynamic tokens
-  if (config.authType === AuthType.QWEN_OAUTH) {
+  // Localhost-Nexus-Redirect doesn't need an API key — local inference server is sovereign.
+  if (config.authType === AuthType.USE_LOCAL_NEXUS) {
     return { valid: true, errors: [] };
   }
 
@@ -292,7 +292,7 @@ export function createContentGeneratorConfig(
 export async function createContentGenerator(
   generatorConfig: ContentGeneratorConfig,
   config: Config,
-  isInitialAuth?: boolean,
+  _isInitialAuth?: boolean,
 ): Promise<ContentGenerator> {
   const validation = validateModelConfig(generatorConfig, false);
   if (!validation.valid) {
@@ -311,38 +311,13 @@ export async function createContentGenerator(
       './openaiContentGenerator/index.js'
     );
     baseGenerator = createOpenAIContentGenerator(generatorConfig, config);
-  } else if (authType === AuthType.QWEN_OAUTH) {
-    // When a static API key + base URL are provided (e.g. OpenRouter), skip
-    // the Qwen OAuth client entirely and use the standard OpenAI-compatible path.
-    if (generatorConfig.apiKey && generatorConfig.baseUrl) {
-      const { createOpenAIContentGenerator } = await import(
-        './openaiContentGenerator/index.js'
-      );
-      baseGenerator = createOpenAIContentGenerator(generatorConfig, config);
-    } else {
-      const { getQwenOAuthClient: getQwenOauthClient } = await import(
-        '../qwen/qwenOAuth2.js'
-      );
-      const { QwenContentGenerator } = await import(
-        '../qwen/qwenContentGenerator.js'
-      );
-
-      try {
-        const qwenClient = await getQwenOauthClient(
-          config,
-          isInitialAuth ? { requireCachedCredentials: true } : undefined,
-        );
-        baseGenerator = new QwenContentGenerator(
-          qwenClient,
-          generatorConfig,
-          config,
-        );
-      } catch (error) {
-        throw new Error(
-          `${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+  } else if (authType === AuthType.USE_LOCAL_NEXUS) {
+    // Localhost-Nexus-Redirect: fully local, sovereign, ollama-compatible endpoint.
+    // No OAuth required — connects directly to the local inference server.
+    const { createOpenAIContentGenerator } = await import(
+      './openaiContentGenerator/index.js'
+    );
+    baseGenerator = createOpenAIContentGenerator(generatorConfig, config);
   } else if (authType === AuthType.USE_ANTHROPIC) {
     const { createAnthropicContentGenerator } = await import(
       './anthropicContentGenerator/index.js'

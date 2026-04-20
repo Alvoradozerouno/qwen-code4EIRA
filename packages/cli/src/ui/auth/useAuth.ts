@@ -126,9 +126,9 @@ export const useAuthCommand = (
           );
         }
 
-        // Only update credentials if not switching to QWEN_OAUTH,
-        // so that OpenAI credentials are preserved when switching to QWEN_OAUTH.
-        if (authType !== AuthType.QWEN_OAUTH && credentials) {
+        // Only update credentials if not switching to USE_LOCAL_NEXUS,
+        // so that OpenAI credentials are preserved when switching to USE_LOCAL_NEXUS.
+        if (authType !== AuthType.USE_LOCAL_NEXUS && credentials) {
           if (credentials?.apiKey != null) {
             settings.setValue(
               authTypeScope,
@@ -274,7 +274,7 @@ export const useAuthCommand = (
   }, []);
 
   const cancelAuthentication = useCallback(() => {
-    if (isAuthenticating && pendingAuthType === AuthType.QWEN_OAUTH) {
+    if (isAuthenticating && pendingAuthType === AuthType.USE_LOCAL_NEXUS) {
       cancelQwenAuth();
     }
 
@@ -569,7 +569,7 @@ export const useAuthCommand = (
     if (
       defaultAuthType &&
       ![
-        AuthType.QWEN_OAUTH,
+        AuthType.USE_LOCAL_NEXUS,
         AuthType.USE_OPENAI,
         AuthType.USE_ANTHROPIC,
         AuthType.USE_GEMINI,
@@ -582,7 +582,7 @@ export const useAuthCommand = (
           {
             value: defaultAuthType,
             validValues: [
-              AuthType.QWEN_OAUTH,
+              AuthType.USE_LOCAL_NEXUS,
               AuthType.USE_OPENAI,
               AuthType.USE_ANTHROPIC,
               AuthType.USE_GEMINI,

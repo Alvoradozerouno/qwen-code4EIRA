@@ -7,10 +7,7 @@
 import { AuthType } from '../core/contentGenerator.js';
 import { defaultModalities } from '../core/modalityDefaults.js';
 import { tokenLimit } from '../core/tokenLimits.js';
-import {
-  DEFAULT_OPENAI_BASE_URL,
-  DEFAULT_OPEN_ROUTER_BASE_URL,
-} from '../core/openaiContentGenerator/constants.js';
+import { DEFAULT_OPENAI_BASE_URL } from '../core/openaiContentGenerator/constants.js';
 import {
   type ModelConfig,
   type ModelProvidersConfig,
@@ -18,12 +15,12 @@ import {
   type AvailableModel,
 } from './types.js';
 import { DEFAULT_QWEN_MODEL } from '../config/models.js';
-import { QWEN_OAUTH_MODELS } from './constants.js';
+import { LOCAL_NEXUS_MODELS } from './constants.js';
 import { createDebugLogger } from '../utils/debugLogger.js';
 
 const debugLogger = createDebugLogger('MODEL_REGISTRY');
 
-export { QWEN_OAUTH_MODELS } from './constants.js';
+export { LOCAL_NEXUS_MODELS } from './constants.js';
 
 /**
  * Validates if a string key is a valid AuthType enum value.
@@ -49,8 +46,8 @@ export class ModelRegistry {
 
   private getDefaultBaseUrl(authType: AuthType): string {
     switch (authType) {
-      case AuthType.QWEN_OAUTH:
-        return DEFAULT_OPEN_ROUTER_BASE_URL;
+      case AuthType.USE_LOCAL_NEXUS:
+        return 'http://localhost:11434/v1';
       case AuthType.USE_OPENAI:
         return DEFAULT_OPENAI_BASE_URL;
       default:
@@ -61,8 +58,8 @@ export class ModelRegistry {
   constructor(modelProvidersConfig?: ModelProvidersConfig) {
     this.modelsByAuthType = new Map();
 
-    // Always register qwen-oauth models (hard-coded, cannot be overridden)
-    this.registerAuthTypeModels(AuthType.QWEN_OAUTH, QWEN_OAUTH_MODELS);
+    // Always register local-nexus models (hard-coded, cannot be overridden)
+    this.registerAuthTypeModels(AuthType.USE_LOCAL_NEXUS, LOCAL_NEXUS_MODELS);
 
     // Register user-configured models for other authTypes
     if (modelProvidersConfig) {
@@ -76,8 +73,8 @@ export class ModelRegistry {
           continue;
         }
 
-        // Skip qwen-oauth as it uses hard-coded models
-        if (authType === AuthType.QWEN_OAUTH) {
+        // Skip localhost-nexus-redirect as it uses hard-coded models
+        if (authType === AuthType.USE_LOCAL_NEXUS) {
           continue;
         }
 
@@ -156,13 +153,13 @@ export class ModelRegistry {
 
   /**
    * Get default model for an authType.
-   * For qwen-oauth, returns the coder model.
+   * For localhost-nexus-redirect, returns the default model.
    * For others, returns the first configured model.
    */
   getDefaultModelForAuthType(
     authType: AuthType,
   ): ResolvedModelConfig | undefined {
-    if (authType === AuthType.QWEN_OAUTH) {
+    if (authType === AuthType.USE_LOCAL_NEXUS) {
       return this.getModel(authType, DEFAULT_QWEN_MODEL);
     }
     const models = this.modelsByAuthType.get(authType);
@@ -203,12 +200,12 @@ export class ModelRegistry {
   /**
    * Reload models from updated configuration.
    * Clears existing user-configured models and re-registers from new config.
-   * Preserves hard-coded qwen-oauth models.
+   * Preserves hard-coded localhost-nexus-redirect models.
    */
   reloadModels(modelProvidersConfig?: ModelProvidersConfig): void {
-    // Clear existing user-configured models (preserve qwen-oauth)
+    // Clear existing user-configured models (preserve localhost-nexus-redirect)
     for (const authType of this.modelsByAuthType.keys()) {
-      if (authType !== AuthType.QWEN_OAUTH) {
+      if (authType !== AuthType.USE_LOCAL_NEXUS) {
         this.modelsByAuthType.delete(authType);
       }
     }
@@ -225,8 +222,8 @@ export class ModelRegistry {
           continue;
         }
 
-        // Skip qwen-oauth as it uses hard-coded models
-        if (authType === AuthType.QWEN_OAUTH) {
+        // Skip localhost-nexus-redirect as it uses hard-coded models
+        if (authType === AuthType.USE_LOCAL_NEXUS) {
           continue;
         }
 

@@ -57,7 +57,7 @@ describe('showAuthStatus', () => {
       expect.stringContaining('No authentication method configured'),
     );
     expect(writeStdoutLine).toHaveBeenCalledWith(
-      expect.stringContaining('qwen auth qwen-oauth'),
+      expect.stringContaining('qwen auth localhost-nexus-redirect'),
     );
     expect(writeStdoutLine).toHaveBeenCalledWith(
       expect.stringContaining('qwen auth coding-plan'),
@@ -70,7 +70,7 @@ describe('showAuthStatus', () => {
       createMockSettings({
         security: {
           auth: {
-            selectedType: AuthType.QWEN_OAUTH,
+            selectedType: AuthType.USE_LOCAL_NEXUS,
           },
         },
       }),

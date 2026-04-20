@@ -188,7 +188,7 @@ export function validateAuthMethod(
     return null;
   }
 
-  if (authMethod === AuthType.QWEN_OAUTH) {
+  if (authMethod === AuthType.USE_LOCAL_NEXUS) {
     // Qwen OAuth doesn't require any environment variables for basic setup
     // The OAuth flow will handle authentication
     return null;

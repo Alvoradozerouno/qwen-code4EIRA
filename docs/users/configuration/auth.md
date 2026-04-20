@@ -24,7 +24,7 @@ qwen
 Or authenticate directly without starting a session:
 
 ```bash
-qwen auth qwen-oauth
+qwen auth localhost-nexus-redirect
 ```
 
 > [!note]
@@ -338,7 +338,7 @@ Select authentication method:
 | Command                                              | Description                                       |
 | ---------------------------------------------------- | ------------------------------------------------- |
 | `qwen auth`                                          | Interactive authentication setup                  |
-| `qwen auth qwen-oauth`                               | Authenticate with Qwen OAuth                      |
+| `qwen auth localhost-nexus-redirect`                 | Configure Localhost-Nexus-Redirect                |
 | `qwen auth coding-plan`                              | Authenticate with Alibaba Cloud Coding Plan       |
 | `qwen auth coding-plan --region china --key sk-sp-…` | Non-interactive Coding Plan setup (for scripting) |
 | `qwen auth status`                                   | Show current authentication status                |
@@ -346,8 +346,8 @@ Select authentication method:
 **Examples:**
 
 ```bash
-# Authenticate with Qwen OAuth directly
-qwen auth qwen-oauth
+# Configure Localhost-Nexus-Redirect directly
+qwen auth localhost-nexus-redirect
 
 # Set up Coding Plan interactively (prompts for region and key)
 qwen auth coding-plan
