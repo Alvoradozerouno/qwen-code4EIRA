@@ -40,6 +40,9 @@ const createMockGetAvailableModelsForAuthType = () =>
   });
 const mockedSelect = vi.mocked(DescriptiveRadioButtonSelect);
 
+// The first (and only) model exposed by getFilteredQwenModels — currently coder-model.
+const FIRST_QWEN_MODEL_ID = getFilteredQwenModels()[0].id;
+
 const renderComponent = (
   props: Partial<React.ComponentProps<typeof ModelDialog>> = {},
   contextValue: Partial<Config> | undefined = undefined,
@@ -127,13 +130,13 @@ describe('<ModelDialog />', () => {
     expect(props.items).toHaveLength(getFilteredQwenModels().length);
     // coder-model is the only model and it has vision capability
     expect(props.items[0].value).toBe(
-      `${AuthType.QWEN_OAUTH}::${DEFAULT_QWEN_MODEL}`,
+      `${AuthType.QWEN_OAUTH}::${FIRST_QWEN_MODEL_ID}`,
     );
     expect(props.showNumbers).toBe(true);
   });
 
   it('initializes with the model from ConfigContext', () => {
-    const mockGetModel = vi.fn(() => DEFAULT_QWEN_MODEL);
+    const mockGetModel = vi.fn(() => FIRST_QWEN_MODEL_ID);
     renderComponent(
       {},
       {
@@ -147,7 +150,7 @@ describe('<ModelDialog />', () => {
     // Calculate expected index dynamically based on model list
     const qwenModels = getFilteredQwenModels();
     const expectedIndex = qwenModels.findIndex(
-      (m) => m.id === DEFAULT_QWEN_MODEL,
+      (m) => m.id === FIRST_QWEN_MODEL_ID,
     );
     expect(mockedSelect).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -328,7 +331,7 @@ describe('<ModelDialog />', () => {
   });
 
   it('updates initialIndex when config context changes', () => {
-    const mockGetModel = vi.fn(() => DEFAULT_QWEN_MODEL);
+    const mockGetModel = vi.fn(() => FIRST_QWEN_MODEL_ID);
     const mockGetAuthType = vi.fn(() => 'qwen-oauth');
     const mockSettings = {
       isTrusted: true,
@@ -361,10 +364,10 @@ describe('<ModelDialog />', () => {
       </SettingsContext.Provider>,
     );
 
-    // DEFAULT_QWEN_MODEL (coder-model) is at index 0
+    // FIRST_QWEN_MODEL_ID (coder-model) is at index 0
     expect(mockedSelect.mock.calls[0][0].initialIndex).toBe(0);
 
-    mockGetModel.mockReturnValue(DEFAULT_QWEN_MODEL);
+    mockGetModel.mockReturnValue(FIRST_QWEN_MODEL_ID);
     const newMockConfig = {
       getModel: mockGetModel,
       getAuthType: mockGetAuthType,
@@ -389,10 +392,10 @@ describe('<ModelDialog />', () => {
 
     // Should be called at least twice: initial render + re-render after context change
     expect(mockedSelect).toHaveBeenCalledTimes(2);
-    // Calculate expected index for DEFAULT_QWEN_MODEL dynamically
+    // Calculate expected index for FIRST_QWEN_MODEL_ID dynamically
     const qwenModels = getFilteredQwenModels();
     const expectedCoderIndex = qwenModels.findIndex(
-      (m) => m.id === DEFAULT_QWEN_MODEL,
+      (m) => m.id === FIRST_QWEN_MODEL_ID,
     );
     expect(mockedSelect.mock.calls[1][0].initialIndex).toBe(expectedCoderIndex);
   });
