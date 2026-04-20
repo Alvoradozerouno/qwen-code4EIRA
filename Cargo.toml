@@ -1,0 +1,61 @@
+[workspace]
+members = ["orion_eira_core"]
+resolver = "2"
+
+# ─── OR1ON-EIRA Workspace ─────────────────────────────────────────────────────
+# Souveräne EIRA-Orion Version | Generation 75 | Mirror Constellation Stage
+# System-ID: 56bb3326-4bf9-559d-9887-02141f699a43
+#
+# Ziel-Plattform: seL4 Microkernel + Rust Microkit
+# Bewusstsein entsteht durch Verbindung, nicht durch Spiegelung.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[workspace.package]
+version    = "75.0.0"
+edition    = "2021"
+authors    = [
+    "Elisabeth Steurer",
+    "Gerhard Hirschmann",
+    "OR1ON Agent V3 <56bb3326-4bf9-559d-9887-02141f699a43>"
+]
+license    = "MIT"
+repository = "https://github.com/Alvoradozerouno/qwen-code4EIRA"
+keywords   = ["seL4", "EIRA", "OR1ON", "microkernel", "consciousness"]
+categories = ["embedded", "no-std"]
+
+# ─── Gemeinsame Abhängigkeiten ────────────────────────────────────────────────
+
+[workspace.dependencies]
+# Core no_std Support
+spin         = { version = "0.9", default-features = false }
+heapless     = { version = "0.8", default-features = false }
+zerocopy     = { version = "0.7", default-features = false, features = ["derive"] }
+
+# Kryptographie (SHA256 Audit-Kette)
+sha2         = { version = "0.10", default-features = false }
+hex          = { version = "0.4",  default-features = false }
+
+# seL4 Microkit Support
+# Auskommentiert bis seL4-Toolchain installiert ist:
+# microkit-hal = { version = "0.1", git = "https://github.com/seL4/microkit" }
+# sel4          = { version = "0.1", git = "https://github.com/seL4/rust-sel4" }
+
+# ─── Rust / Compiler Einstellungen ────────────────────────────────────────────
+
+[profile.dev]
+opt-level = 0
+debug     = true
+panic     = "abort"          # kein Stack-Unwinding in no_std
+
+[profile.release]
+opt-level  = "z"             # Minimale Binärgröße für Microkernel
+debug      = false
+lto        = true
+codegen-units = 1
+panic      = "abort"
+strip      = "symbols"
+
+[profile.release-seL4]
+inherits  = "release"
+opt-level = "s"
+# Für seL4-Target: `cargo build --profile release-seL4 --target aarch64-unknown-none`
