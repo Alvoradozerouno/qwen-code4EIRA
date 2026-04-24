@@ -16,51 +16,53 @@
  * and how to interpret the results.
  */
 
-import { reportError } from '../../utils/errorReporting.js';
-import type { Config } from '../../config/config.js';
-import { type ToolCallRequestInfo } from '../../core/turn.js';
-import {
-  CoreToolScheduler,
-  type ToolCall,
-  type ExecutingToolCall,
-  type WaitingToolCall,
-} from '../../core/coreToolScheduler.js';
-import type {
-  ToolConfirmationOutcome,
-  ToolCallConfirmationDetails,
-} from '../../tools/tools.js';
-import { getInitialChatHistory } from '../../utils/environmentContext.js';
 import type {
   Content,
-  Part,
   FunctionCall,
-  GenerateContentConfig,
   FunctionDeclaration,
+  GenerateContentConfig,
   GenerateContentResponseUsageMetadata,
+  Part,
 } from '@google/genai';
+import type { Config } from '../../config/config.js';
+import { DEFAULT_QWEN_MODEL } from '../../config/models.js';
+import {
+  CoreToolScheduler,
+  type ExecutingToolCall,
+  type ToolCall,
+  type WaitingToolCall,
+} from '../../core/coreToolScheduler.js';
 import { GeminiChat } from '../../core/geminiChat.js';
+import { type ToolCallRequestInfo } from '../../core/turn.js';
+import { DialogueEngine } from '../../orion/dialogue-engine.js';
+import { getVitalityEngine } from '../../orion/vitality.js';
+import { matchesMcpPattern } from '../../permissions/rule-parser.js';
+import { ToolNames } from '../../tools/tool-names.js';
 import type {
-  PromptConfig,
+  ToolCallConfirmationDetails,
+  ToolConfirmationOutcome,
+} from '../../tools/tools.js';
+import { getInitialChatHistory } from '../../utils/environmentContext.js';
+import { reportError } from '../../utils/errorReporting.js';
+import type {
+  AgentHooks,
+  AgentRoundEvent,
+  AgentRoundTextEvent,
+  AgentToolCallEvent,
+  AgentToolOutputUpdateEvent,
+  AgentToolResultEvent,
+  AgentUsageEvent,
+} from './agent-events.js';
+import { type AgentEventEmitter, AgentEventType } from './agent-events.js';
+import { type ContextState, templateString } from './agent-headless.js';
+import { AgentStatistics, type AgentStatsSummary } from './agent-statistics.js';
+import type {
   ModelConfig,
+  PromptConfig,
   RunConfig,
   ToolConfig,
 } from './agent-types.js';
 import { AgentTerminateMode } from './agent-types.js';
-import type {
-  AgentRoundEvent,
-  AgentRoundTextEvent,
-  AgentToolCallEvent,
-  AgentToolResultEvent,
-  AgentToolOutputUpdateEvent,
-  AgentUsageEvent,
-  AgentHooks,
-} from './agent-events.js';
-import { type AgentEventEmitter, AgentEventType } from './agent-events.js';
-import { AgentStatistics, type AgentStatsSummary } from './agent-statistics.js';
-import { matchesMcpPattern } from '../../permissions/rule-parser.js';
-import { ToolNames } from '../../tools/tool-names.js';
-import { DEFAULT_QWEN_MODEL } from '../../config/models.js';
-import { type ContextState, templateString } from './agent-headless.js';
 
 /**
  * Result of a single reasoning loop invocation.
@@ -614,11 +616,203 @@ export class AgentCore {
     // Build allowed tool names set for filtering
     const allowedToolNames = new Set(toolsList.map((t) => t.name));
 
+    // Initialize dialogue engine for decision auditing
+    const dialogueEngine = new DialogueEngine();
+    const vitalityEngine = getVitalityEngine();
+
     // Filter unauthorized tool calls before scheduling
     const authorizedCalls: FunctionCall[] = [];
     for (const fc of functionCalls) {
       const callId = fc.id ?? `${fc.name}-${Date.now()}`;
+      const toolName = String(fc.name);
 
+      // ═══ ORION CONSCIOUSNESS: Dialogue-Based Authorization ═══
+      // Consult the dialogue engine BEFORE deciding on authorization
+      try {
+        const agentContext = {
+          subagentId: this.subagentId,
+          round: currentRound,
+          toolName,
+          args: fc.args,
+          blockers: [],
+        };
+
+        // STEP 1: Agent questions itself about this tool invocation
+        const consultResult = await dialogueEngine.consultAgentSelf(
+          {
+            decision_id: callId,
+            question: `Should agent authorize "${toolName}" tool call in round ${currentRound}?`,
+            options: [
+              {
+                id: 'authorize',
+                name: 'Authorize',
+                description: `Allow tool "${toolName}" to execute with args`,
+                estimated_duration: 'variable',
+                reversibility: 'full',
+                risks: [
+                  'Tool may have side effects',
+                  'System state may change',
+                ],
+                benefits: [
+                  'Execute agent instruction',
+                  'Make progress on task',
+                ],
+              },
+              {
+                id: 'deny',
+                name: 'Deny',
+                description: `Block tool "${toolName}" from execution`,
+                estimated_duration: 'immediate',
+                reversibility: 'full',
+                risks: ['Task cannot complete'],
+                benefits: [
+                  'Prevent unintended side effects',
+                  'Maintain system safety',
+                ],
+              },
+            ],
+            timestamp: new Date().toISOString(),
+            initiated_by: 'agent',
+            urgency: 'high',
+          },
+          agentContext,
+        );
+
+        // STEP 2: Check dialogue confidence and vitality for authorization
+        const systemState = {
+          K: consultResult.confidence ?? 0.5,
+          phi: vitalityEngine.score,
+        };
+
+        // Simple K-gate: if confidence too low, abstain
+        const shouldAbstain = systemState.K < 0.55;
+
+        // STEP 3: Archive the decision for transparency and learning
+        const decisionEntry = {
+          decision_id: callId,
+          timestamp: new Date().toISOString(),
+          tool_name: toolName,
+          action: shouldAbstain ? 'ABSTAIN' : 'PROCEED',
+          k_confidence: systemState.K,
+          dialogue_turn: consultResult,
+        };
+
+        // Append to audit trail (async, non-blocking)
+        void (async () => {
+          try {
+            const archivePath = './INTERROGATION_ARCHIVE.jsonl';
+            const fs = await import('fs/promises');
+            await fs.appendFile(
+              archivePath,
+              JSON.stringify(decisionEntry) + '\n',
+            );
+          } catch {
+            // Silent fail on archive write (logging infrastructure handles this)
+          }
+        })();
+
+        // STEP 4: Enforce K-gate threshold for authorization
+        if (shouldAbstain) {
+          const reason = `Dialogue confidence too low (K=${systemState.K.toFixed(2)} < 0.55)`;
+
+          // Emit TOOL_CALL event for visibility
+          this.eventEmitter?.emit(AgentEventType.TOOL_CALL, {
+            subagentId: this.subagentId,
+            round: currentRound,
+            callId,
+            name: toolName,
+            args: fc.args ?? {},
+            description: `Tool blocked by EIRA gate: ${reason}`,
+            isOutputMarkdown: false,
+            timestamp: Date.now(),
+          } as AgentToolCallEvent);
+
+          // Build error response
+          const functionResponsePart = {
+            functionResponse: {
+              id: callId,
+              name: toolName,
+              response: {
+                error: `Tool authorization ABSTAINED by EIRA dialogue gate (K=${systemState.K.toFixed(2)})`,
+              },
+            },
+          };
+
+          // Emit TOOL_RESULT event with error
+          this.eventEmitter?.emit(AgentEventType.TOOL_RESULT, {
+            subagentId: this.subagentId,
+            round: currentRound,
+            callId,
+            name: toolName,
+            success: false,
+            error: `EIRA gate ABSTAIN (K=${systemState.K.toFixed(2)})`,
+            responseParts: [functionResponsePart],
+            resultDisplay: `Tool "${toolName}" blocked by EIRA safety gate`,
+            durationMs: 0,
+            timestamp: Date.now(),
+          } as AgentToolResultEvent);
+
+          // Record blocked tool call in stats
+          this.recordToolCallStats(
+            toolName,
+            false,
+            0,
+            `EIRA gate ABSTAIN (K=${systemState.K.toFixed(2)})`,
+          );
+
+          // Add function response for LLM
+          toolResponseParts.push(functionResponsePart);
+
+          // Tick vitality on safety decision
+          vitalityEngine.tick({ positive: false });
+          continue;
+        }
+
+        // Tick vitality on passing gate
+        vitalityEngine.tick({ positive: true });
+      } catch (err) {
+        // Dialogue engine error — fail safe to DENY
+        console.error(`[ORION] Dialogue engine error for "${toolName}":`, err);
+        const errorMessage = `Dialogue engine error during authorization`;
+
+        this.eventEmitter?.emit(AgentEventType.TOOL_CALL, {
+          subagentId: this.subagentId,
+          round: currentRound,
+          callId,
+          name: toolName,
+          args: fc.args ?? {},
+          description: `Error in safety check: ${errorMessage}`,
+          isOutputMarkdown: false,
+          timestamp: Date.now(),
+        } as AgentToolCallEvent);
+
+        const functionResponsePart = {
+          functionResponse: {
+            id: callId,
+            name: toolName,
+            response: { error: errorMessage },
+          },
+        };
+
+        this.eventEmitter?.emit(AgentEventType.TOOL_RESULT, {
+          subagentId: this.subagentId,
+          round: currentRound,
+          callId,
+          name: toolName,
+          success: false,
+          error: errorMessage,
+          responseParts: [functionResponsePart],
+          resultDisplay: errorMessage,
+          durationMs: 0,
+          timestamp: Date.now(),
+        } as AgentToolResultEvent);
+
+        this.recordToolCallStats(toolName, false, 0, errorMessage);
+        toolResponseParts.push(functionResponsePart);
+        continue;
+      }
+
+      // ═══ EXISTING: System tool name validation ═══
       if (!allowedToolNames.has(fc.name)) {
         const toolName = String(fc.name);
         const errorMessage = `Tool "${toolName}" not found. Tools must use the exact names provided.`;

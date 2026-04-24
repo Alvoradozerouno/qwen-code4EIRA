@@ -1,22 +1,20 @@
-import OpenAI from 'openai';
 import type { GenerateContentConfig } from '@google/genai';
+import OpenAI from 'openai';
 import type { Config } from '../../../config/config.js';
-import type { ContentGeneratorConfig } from '../../contentGenerator.js';
-import { DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES } from '../constants.js';
-import type { OpenAICompatibleProvider } from './types.js';
 import { buildRuntimeFetchOptions } from '../../../utils/runtimeFetchOptions.js';
+import type { ContentGeneratorConfig } from '../../contentGenerator.js';
 import {
-  tokenLimit,
   CAPPED_DEFAULT_MAX_TOKENS,
   hasExplicitOutputLimit,
+  tokenLimit,
 } from '../../tokenLimits.js';
+import { DEFAULT_MAX_RETRIES, DEFAULT_TIMEOUT } from '../constants.js';
+import type { OpenAICompatibleProvider } from './types.js';
 
 /**
  * Default provider for standard OpenAI-compatible APIs
  */
-export class DefaultOpenAICompatibleProvider
-  implements OpenAICompatibleProvider
-{
+export class DefaultOpenAICompatibleProvider implements OpenAICompatibleProvider {
   protected contentGeneratorConfig: ContentGeneratorConfig;
   protected cliConfig: Config;
 
@@ -55,14 +53,24 @@ export class DefaultOpenAICompatibleProvider
       'openai',
       this.cliConfig.getProxy(),
     );
-    return new OpenAI({
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const clientOptions: any = {
       apiKey,
       baseURL: baseUrl,
       timeout,
       maxRetries,
       defaultHeaders,
-      ...(runtimeOptions || {}),
-    });
+    };
+
+    // Add runtimeOptions if available (dispatcher for undici support)
+    if (runtimeOptions?.fetchOptions?.dispatcher) {
+      clientOptions.fetchOptions = {
+        dispatcher: runtimeOptions.fetchOptions.dispatcher,
+      };
+    }
+
+    return new OpenAI(clientOptions);
   }
 
   buildRequest(

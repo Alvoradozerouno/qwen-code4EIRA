@@ -1,21 +1,21 @@
-import OpenAI from 'openai';
 import type { GenerateContentConfig } from '@google/genai';
+import OpenAI from 'openai';
 import type { Config } from '../../../config/config.js';
+import { buildRuntimeFetchOptions } from '../../../utils/runtimeFetchOptions.js';
 import type { ContentGeneratorConfig } from '../../contentGenerator.js';
 import { AuthType } from '../../contentGenerator.js';
 import {
-  DEFAULT_TIMEOUT,
-  DEFAULT_MAX_RETRIES,
   DEFAULT_DASHSCOPE_BASE_URL,
+  DEFAULT_MAX_RETRIES,
+  DEFAULT_TIMEOUT,
 } from '../constants.js';
+import { DefaultOpenAICompatibleProvider } from './default.js';
 import type {
-  DashScopeRequestMetadata,
   ChatCompletionContentPartTextWithCache,
   ChatCompletionContentPartWithCache,
   ChatCompletionToolWithCache,
+  DashScopeRequestMetadata,
 } from './types.js';
-import { buildRuntimeFetchOptions } from '../../../utils/runtimeFetchOptions.js';
-import { DefaultOpenAICompatibleProvider } from './default.js';
 
 export class DashScopeOpenAICompatibleProvider extends DefaultOpenAICompatibleProvider {
   constructor(
@@ -70,14 +70,24 @@ export class DashScopeOpenAICompatibleProvider extends DefaultOpenAICompatiblePr
       'openai',
       this.cliConfig.getProxy(),
     );
-    return new OpenAI({
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const clientOptions: any = {
       apiKey,
       baseURL: baseUrl,
       timeout,
       maxRetries,
       defaultHeaders,
-      ...(runtimeOptions || {}),
-    });
+    };
+
+    // Add runtimeOptions if available (dispatcher for undici support)
+    if (runtimeOptions?.fetchOptions?.dispatcher) {
+      clientOptions.fetchOptions = {
+        dispatcher: runtimeOptions.fetchOptions.dispatcher,
+      };
+    }
+
+    return new OpenAI(clientOptions);
   }
 
   /**
@@ -177,7 +187,7 @@ export class DashScopeOpenAICompatibleProvider extends DefaultOpenAICompatiblePr
         : messages.map((message, index) => {
             const shouldAddCacheControl = Boolean(
               (index === systemIndex && systemIndex !== -1) ||
-                (index === lastIndex && cacheControl === 'all'),
+              (index === lastIndex && cacheControl === 'all'),
             );
 
             if (
