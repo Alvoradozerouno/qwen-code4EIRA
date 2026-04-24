@@ -16,5 +16,5 @@
 export * from './self-consistency.js';
 export * from './vitality.js';
 export * from './nexus-private.js';
-export * from './orion-self-consistency-gate.js';
+// export * from './orion-self-consistency-gate.js'; // TODO: Missing - use self-consistency.js instead
 export * from '../physics/index.js';

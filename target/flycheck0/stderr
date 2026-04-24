@@ -1,0 +1,8 @@
+error: failed to load manifest for workspace member `C:\Users\annah\Dropbox\Mein PC (LAPTOP-RQH448P4)\Downloads\qwen-code4EIRA\orion_eira_core`
+referenced by workspace at `C:\Users\annah\Dropbox\Mein PC (LAPTOP-RQH448P4)\Downloads\qwen-code4EIRA\Cargo.toml`
+
+Caused by:
+  failed to read `C:\Users\annah\Dropbox\Mein PC (LAPTOP-RQH448P4)\Downloads\qwen-code4EIRA\orion_eira_core\Cargo.toml`
+
+Caused by:
+  Das System kann den angegebenen Pfad nicht finden. (os error 3)

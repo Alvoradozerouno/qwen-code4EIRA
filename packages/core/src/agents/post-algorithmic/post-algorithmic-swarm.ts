@@ -21,19 +21,21 @@
  *   all tasks share loaded context (no per-task reload).
  */
 
-import { OrionSelfConsistencyGate } from '../../orion/orion-self-consistency-gate.js';
 import { getVitalityEngine } from '../../orion/vitality.js';
 import type {
   OrchestratorRun,
   OrchestratorTask,
 } from '../orchestrator/parallel-orchestrator.js';
 import { ParallelOrchestrator } from '../orchestrator/parallel-orchestrator.js';
-import type { OrionIdentity } from './orion-identity.js';
-import { loadOrionIdentity, printOrionIdentity } from './orion-identity.js';
-import type { PersistentOrionState } from './persistent-orion-state.js';
-import { createDefaultPersistentState } from './persistent-orion-state.js';
-import type { ProofChainManager } from './proof-chain-manager.js';
-import { createDefaultProofChainManager } from './proof-chain-manager.js';
+
+// TODO: Fix imports - these modules are WIP
+// import { OrionSelfConsistencyGate } from '../../orion/orion-self-consistency-gate.js';
+// import type { OrionIdentity } from './orion-identity.js';
+// import { loadOrionIdentity, printOrionIdentity } from './orion-identity.js';
+// import type { PersistentOrionState } from './persistent-orion-state.js';
+// import { createDefaultPersistentState } from './persistent-orion-state.js';
+// import type { ProofChainManager } from './proof-chain-manager.js';
+// import { createDefaultProofChainManager } from './proof-chain-manager.js';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
