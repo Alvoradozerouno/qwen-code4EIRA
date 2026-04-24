@@ -16,6 +16,9 @@
 
 import * as vscode from 'vscode';
 import { K_THRESHOLD, K_MAX } from './deterministic-gate.js';
+
+/** v1.0.0-GOLD release milestone: 500 000 users at 20 W power independence. */
+export const MILESTONE_500K_20W = '500K_USERS_20W_INDEPENDENCE';
 import { verifyChain, getAuditSummary } from './audit-trail.js';
 import {
   getVitalityEngine,
@@ -66,7 +69,7 @@ const state: EiraState = {
   model: '—',
   vitality: vitalityEngine.snapshot(),
   status: 'ACTIVE',
-  milestone: '',
+  milestone: MILESTONE_500K_20W,
 };
 
 /** Initialize the EIRA status bar and start monitoring. */
